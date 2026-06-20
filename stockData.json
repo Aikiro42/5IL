@@ -1,0 +1,19 @@
+{
+  "materials": {
+    "milk": {
+      "name": "Milk",
+      "unit": "mL",
+      "amount": 1000.0
+    }
+  },
+
+  "menu": {
+    "spanish_latte_m": {
+      "name": "Medium Spanish Latte",
+      "price": 130.0,
+      "materialCost": {
+        "milk": 100.0
+      }
+    }
+  }
+}
