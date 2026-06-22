@@ -63,119 +63,119 @@
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar">
 
-        <div class="sidebar-header">
-            <span class="title">Dashboard</span>
-            <span class="toggle-btn" id="toggleBtn">☰</span>
-        </div>
+    <div class="sidebar-header">
+      <span class="title">Dashboard</span>
+      <span class="toggle-btn" id="toggleBtn">☰</span>
+    </div>
 
-        <ul class="nav">
-            <li id="nav_dashboard">
-              🏠 <span class="nav-text">Dashboard</span>
-            </li>
-            <li id="nav_orders">
-              📝 <span class="nav-text">Orders</span>
-            </li>
-            <li id="nav_stock">
-              📦 <span class="nav-text">Stock</span>
-            </li>
-            <li id="nav_ingredients">
-              🧪 <span class="nav-text">Ingredients</span>
-            </li>
-            <li>
-              📄 <span class="nav-text">Reports</span>
-            </li>
-            <li>
-              ⚙️ <span class="nav-text">Settings</span>
-            </li>
-        </ul>
+    <ul class="nav">
+      <li id="nav_dashboard">
+        🏠 <span class="nav-text">Dashboard</span>
+      </li>
+      <li id="nav_orders">
+        📝 <span class="nav-text">Orders</span>
+      </li>
+      <li id="nav_stock">
+        📦 <span class="nav-text">Stock</span>
+      </li>
+      <li id="nav_ingredients">
+        🧪 <span class="nav-text">Ingredients</span>
+      </li>
+      <li>
+        📄 <span class="nav-text">Reports</span>
+      </li>
+      <li>
+        ⚙️ <span class="nav-text">Settings</span>
+      </li>
+    </ul>
 
-    </aside>
+  </aside>
 
-    <main class="content" id="content">
-
-      <div id="content-ingredients">
-<div class="table-wrapper">
-<table id="ingredients_table">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Ingredient</th>
-      <th>Unit</th>
-      <th>Amount</th>
-      <th>Last Restock</th>
-    </tr>
-  </thead>
-  <tbody id="ingredients_table_content">
-  </tbody>
-  <tr>
-    <td id="ingredients_additem" colspan="5">
-      ➕ Add item
-    </td>
-  </tr>
-</table>
-</div>
-
+  <main class="content" id="content">
+    
+    <!--INGREDIENTS-->
+    <div id="content-ingredients">
+      <div class="table-wrapper">
+        <table id="ingredients_table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ingredient</th>
+              <th>Unit</th>
+              <th>Amount</th>
+              <th>Last Restock</th>
+            </tr>
+          </thead>
+          <tbody id="ingredients_table_content">
+          </tbody>
+          <tr>
+            <td id="ingredients_additem" colspan="5">
+              ➕ Add item
+            </td>
+          </tr>
+        </table>
       </div>
+    </div>
 
-    </main>
+  </main>
 
-    <script>
-      const sidebar = document.getElementById("sidebar");
-      const toggleBtn = document.getElementById("toggleBtn");
-      const content = document.getElementById("content")
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const content = document.getElementById("content")
 
-      toggleBtn.addEventListener("click", () => {
-        sidebar.classList.toggle("collapsed");
-      });
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+    });
 
-      // Loads the specified HTML
-      async function loadPage(htmlPath, targetDOM) {
-        try {
-          const response = await fetch(htmlPath);
+    // Loads the specified HTML
+    async function loadPage(htmlPath, targetDOM) {
+      try {
+        const response = await fetch(htmlPath);
 
-          if (!response.ok) {
-            throw new Error(`Failed to load ${htmlPath}`);
-          }
-
-          const html = await response.text();
-          targetDOM.innerHTML = html;
-        } catch (error) {
-          targetDOM.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
-          console.error(error);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${htmlPath}`);
         }
+
+        const html = await response.text();
+        targetDOM.innerHTML = html;
+      } catch (error) {
+        targetDOM.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
+        console.error(error);
       }
+    }
 
-      // init navbar click handlers
+    // init navbar click handlers
 
-      const navs = [
-        "dashboard",
-        "ingredients",
-        "stock",
-        "orders"
-      ];
+    const navs = [
+      "dashboard",
+      "ingredients",
+      "stock",
+      "orders"
+    ];
 
-      navs.forEach(function(e){
-        const domElement = document.getElementById("nav_" + e)
-        if (domElement) {
-          domElement.addEventListener("click", () => {
-            navs.forEach(function(f){
-              console.log(e)
-              const contentElement = document.getElementById("content-" + f)
-              if (contentElement){
-                contentElement.classList.add("hidden");
-              }
-            });
-            const selectedContentElement = document.getElementById("content-" + e)
-            if (selectedContentElement){
-              selectedContentElement.classList.remove("hidden");
+    navs.forEach(function(e){
+      const domElement = document.getElementById("nav_" + e)
+      if (domElement) {
+        domElement.addEventListener("click", () => {
+          navs.forEach(function(f){
+            console.log(e)
+            const contentElement = document.getElementById("content-" + f)
+            if (contentElement){
+              contentElement.classList.add("hidden");
             }
           });
-        }
-      });
+          const selectedContentElement = document.getElementById("content-" + e)
+          if (selectedContentElement){
+            selectedContentElement.classList.remove("hidden");
+          }
+        });
+      }
+    });
 
-    </script>
+  </script>
 
 </body>
 </html>
