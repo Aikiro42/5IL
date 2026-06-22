@@ -26,6 +26,7 @@ async function loadPage(htmlPath, targetDOM) {
 // init navbar click handlers
 
 const navDashboard = document.getElementById("nav_dashboard");
+const navIngredients = document.getElementById("nav_ingredients");
 const navStock = document.getElementById("nav_stock");
 const navOrders = document.getElementById("nav_orders");
 
@@ -35,6 +36,10 @@ navDashboard.addEventListener("click", () => {
 
 navStock.addEventListener("click", () => {
   loadPage("sub/stock.html", content);
+});
+
+navIngredients.addEventListener("click", () => {
+  loadPage("sub/ingredients.html", content);
 });
 
 navOrders.addEventListener("click", () => {
