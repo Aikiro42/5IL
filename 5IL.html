@@ -144,7 +144,7 @@
   <div id="overlay" class="hidden">
 
     <!-- OVERLAY: Stock -->
-    <div id="overlay-stockitem" class="overlay hidden">
+    <div id="overlay-stockitem" class="overlay hidden"> 
       <div class="popup">
         <h1>Edit Menu Item</h1>
 
@@ -157,8 +157,58 @@
 
         <div class="form-group">
           <input type="hidden" id="edit-stock-ingredients">
-          <!-- TODO: editable ingredients table-->
+
+          <label>Ingredients</label>
+
+          <table class="generic-table">
+            <thead>
+              <tr>
+                <th>Ingredient</th>
+                <th>Amount</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+
+            <tbody id="edit-stock-ingredients-tbody">
+              <!-- Rows will be inserted here -->
+            </tbody>
+            <tr>
+              <td id="edit-stock-add-ingredient" class="generic-additem" colspan="3">
+                ➕ Add Ingredient
+              </td>
+            </tr>
+          </table>
         </div>
+
+        <!-- Template row (can be cloned via JS) -->
+        <!--
+        <template id="ingredient-row-template">
+          <tr class="ingredient-row">
+            <td>
+              <input type="text" class="ingredient-name" placeholder="e.g. Milk">
+            </td>
+
+            <td>
+              <input type="number" class="ingredient-amount" min="0" step="0.01" placeholder="0">
+            </td>
+
+            <td>
+              <select class="ingredient-unit">
+                <option value="ml">ml</option>
+                <option value="g">g</option>
+                <option value="pcs">pcs</option>
+                <option value="tbsp">tbsp</option>
+                <option value="tsp">tsp</option>
+              </select>
+            </td>
+
+            <td>
+              <button type="button" class="remove-ingredient-row">
+                ❌
+              </button>
+            </td>
+          </tr>
+        </template>-->
 
         <div class="button-row">
           <button id="ingredient-save">💾 Save</button>
