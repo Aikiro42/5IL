@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Collapsible Sidebar</title>
+  <title>5IL - Localized Ordering System</title>
   <style>
+
+    /* SECTION: Global CSS */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     .hidden { display: none; }
+    .small-button{ cursor: pointer; font-size: 1.5em;}
+    
     body { display: flex; height: 100vh; overflow: hidden; }
-
+    
     /* SECTION: Sidebar */
     .sidebar { width: 250px; background: #2c3e50; color: white; transition: width 0.3s ease; overflow: hidden; display: flex; flex-direction: column; }
     .sidebar.collapsed { width: 70px; }
@@ -23,14 +27,40 @@
     
     /* SECTION: Main content */
 
-    .content {
-      flex: 1;
-      padding: 30px;
-      background: #f4f4f4;
-      overflow-y: auto;
-    }
+    .content { flex: 1; padding: 30px; background: #f4f4f4; overflow-y: auto; }
+    #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
 
-    /* SECTION: Ingredients Table */
+    /* SECTION: Ingredients */
+    
+    /*import/export inventory*/
+    .import-button,.export-button,.refresh-button {
+      display: inline-block;
+      padding: 14px 20px;
+      margin: 1em;
+      font-size: 1rem; font-weight: 600;
+      background: #2d6cdf; color: white;
+      border-radius: 12px;
+      cursor: pointer; user-select: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+    }
+    .import-button:hover { background: #386fd5; }
+    .import-button:active { transform: scale(0.98); }
+
+    .export-button {
+      background: #df2d2d; color: white;
+    }
+    .export-button:hover { background: #eb4040; }
+    .export-button:active { transform: scale(0.98); }
+
+    
+    .refresh-button {
+      background: #b2b2b2; color: white;
+    }
+    .refresh-button:hover { background: #e3e3e3; }
+    .refresh-button:active { transform: scale(0.98); }
+    
+    /* table */
     #ingredients_table {
       width: 100%;
       border-collapse: collapse;
@@ -59,6 +89,21 @@
     #ingredients_table #ingredients_additem:active{ cursor: pointer; background-color: #c1c4c7; }
     .table-wrapper { width: 100%; overflow-x: auto; }
 
+    /* Edit Ingredient */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+
+    .popup { background: white; padding: 24px; border-radius: 16px; width: min(500px, 90vw);
+      display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-weight: bold; }
+    .form-group input { padding: 12px; font-size: 1rem; }
+    .button-row { display: flex; justify-content: space-between; gap: 12px; }
+    .button-row button { flex: 1; padding: 14px; font-size: 1rem; }   
+  
   </style>
 </head>
 <body>
@@ -93,19 +138,66 @@
 
   </aside>
 
+  <div id="overlay" class="hidden">
+    <!-- OVERLAY: Ingredients -->
+    <div id="overlay-ingredients" class="overlay hidden">
+      <div class="popup">
+        <h1>Edit Ingredient</h1>
+
+        <input type="hidden" id="edit-ingredient-id">
+
+        <div class="form-group">
+          <label for="edit-ingredient-name">Ingredient Name</label>
+          <input type="text" id="edit-ingredient-name" placeholder="Milk">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-ingredient-unit">Unit</label>
+          <input type="text" id="edit-ingredient-unit" placeholder="mL">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-ingredient-amount">Amount</label>
+          <input type="number" id="edit-ingredient-amount" min="0" step="0.01">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-ingredient-restock">Last Restock</label>
+          <input type="date" id="edit-ingredient-restock">
+        </div>
+
+        <div class="button-row">
+          <button id="ingredient-save">💾 Save</button>
+          <button id="ingredient-cancel" onclick="cancelOverlay()">❌ Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <main class="content" id="content">
     
-    <!--INGREDIENTS-->
+    <!--CONTENT: Ingredients-->
     <div id="content-ingredients">
+      <span id="refresh-inventory" class="refresh-button">
+        🔄️
+      </span>
+      <label for="import-inventory" class="import-button">
+        📥 Import Inventory Data
+      </label>
+      <input type="file" id="import-inventory" class="hidden" accept=".json">
+      <span id="export-inventory" class="export-button">
+        📤 Export Inventory Data
+      </span>
+
       <div class="table-wrapper">
         <table id="ingredients_table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Ingredient</th>
               <th>Unit</th>
               <th>Amount</th>
               <th>Last Restock</th>
+              <th>Edit</th>
             </tr>
           </thead>
           <tbody id="ingredients_table_content">
@@ -122,47 +214,189 @@
   </main>
 
   <script>
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleBtn");
-    const content = document.getElementById("content")
 
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("collapsed");
-    });
-
-    // Loads the specified HTML
-    async function loadPage(htmlPath, targetDOM) {
-      try {
-        const response = await fetch(htmlPath);
-
-        if (!response.ok) {
-          throw new Error(`Failed to load ${htmlPath}`);
-        }
-
-        const html = await response.text();
-        targetDOM.innerHTML = html;
-      } catch (error) {
-        targetDOM.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
-        console.error(error);
-      }
-    }
-
-    // init navbar click handlers
-
-    const navs = [
+    // CONSTANTS
+    const categories = [
       "dashboard",
       "ingredients",
       "stock",
       "orders"
     ];
 
+    const overlays = [
+      "ingredients"
+    ]
+
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const content = document.getElementById("content")
+    const overlay = document.getElementById("overlay")
+
+    // GENERAL FUNCTIONS
+    function showOverlay(overlayName){
+      // show the overlay
+      overlay.classList.remove("hidden");
+      
+      // hide all overlays
+      overlays.forEach((e)=>{
+        const overlayCategory = document.getElementById("overlay-" + e)
+        if (overlayCategory) {
+          overlayCategory.classList.add("hidden");
+        }
+      })
+
+      // show the selected overlay
+      const selectedOverlayCategory = document.getElementById("overlay-" + overlayName)
+      if (selectedOverlayCategory) {
+        selectedOverlayCategory.classList.add("hidden");
+      }
+    }
+
+    function hideOverlay() {
+      overlay.classList.add("hidden");
+    }
+
+    
+    function loadData(jsonFile) {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          // Save each top-level object separately
+          for (const key in data) {
+            localStorage.setItem(key, JSON.stringify(data[key]));
+          }
+
+          console.log("Data loaded successfully.");
+
+          // Update UI AFTER data is loaded
+          updateInventory();
+
+        } catch (err) {
+          console.error("Invalid JSON file:", err);
+        }
+      };
+
+      reader.readAsText(jsonFile);
+    }
+    
+    // SECTION: INGREDIENTS
+
+    function showIngredientOverlay(id, name, unit, amount, lastRestock) {
+      // Populate form
+      document.getElementById("edit-ingredient-id").value = id || "";
+      document.getElementById("edit-ingredient-name").value = name || "";
+      document.getElementById("edit-ingredient-unit").value = unit || "";
+      document.getElementById("edit-ingredient-amount").value = amount || 0;
+
+      // Convert ISO date to YYYY-MM-DD for <input type="date">
+      if (lastRestock){
+        document.getElementById("edit-ingredient-restock").value =
+          new Date(lastRestock).toISOString().split("T")[0];
+      }
+
+      // Show overlay
+      showOverlay("ingredients")
+    }
+
+    function saveIngredient() {
+      const ingredient_name = document.getElementById("edit-ingredient-name").value || "Unknown Ingredient";
+      const ingredient_unit = document.getElementById("edit-ingredient-unit").value || "U";
+      const ingredient_amount = Number(document.getElementById("edit-ingredient-amount").value) || 0;
+      
+        // date input gives "" when empty, so normalize first
+      const restockInput = document.getElementById("edit-ingredient-restock").value;
+      const ingredient_restock = restockInput
+        ? new Date(restockInput).toISOString()
+        : new Date().toISOString();      // format ingredient into json
+      const ingredient = {
+        name: ingredient_name,
+        unit: ingredient_unit,
+        amount: ingredient_amount,
+        lastRestock: ingredient_restock
+      };
+
+      // obtain id
+      const id = `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
+        
+      const ingredients = JSON.parse(localStorage.getItem("ingredients")) || {};
+      ingredients[id] = ingredient;
+      localStorage.setItem("ingredients", JSON.stringify(ingredients));
+
+      updateInventory();
+      hideOverlay();
+    }
+
+    function deleteIngredient(id){
+        const ingredients = JSON.parse(localStorage.getItem("ingredients")) || {};
+        delete ingredients[id];
+        localStorage.setItem("ingredients", JSON.stringify(ingredients));
+        updateInventory(); // Refresh the table
+    }
+
+    function updateInventory() {
+      const ingredientsContent = document.getElementById("ingredients_table_content");
+
+      if (!ingredientsContent) return;
+
+      // Clear old rows
+      ingredientsContent.innerHTML = "";
+
+      // Load ingredients
+      const ingredients =
+        JSON.parse(localStorage.getItem("ingredients")) || {};
+
+      // Add rows
+      for (const [id, ingredient] of Object.entries(ingredients)) {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${ingredient.name}</td>
+          <td>${ingredient.unit}</td>
+          <td>${ingredient.amount}</td>
+          <td>${new Date(ingredient.lastRestock).toISOString().split('T')[0]}</td>
+          <td>
+            <span class="small-button edit-button">✏️</span>
+            <span class="small-button delete-button">🗑️</span>
+          </td>
+        `;
+
+        row.querySelector(".edit-button").addEventListener("click", () => {
+          showIngredientOverlay(
+            id,
+            ingredient.name,
+            ingredient.unit,
+            ingredient.amount,
+            ingredient.lastRestock
+          );
+        });
+
+        row.querySelector(".delete-button").addEventListener("click", () => {
+          deleteIngredient(id)
+        })
+
+        ingredientsContent.appendChild(row);
+      }
+    }
+
+    // HANDLERS
+
+    // navbar burger collapser
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+    });
+
     /*
+    for each category item, add a handler that hides all other content- divs
+    and shows that respective nav-'s div
     */
-    navs.forEach(function(e){
+    categories.forEach(function(e){
       const domElement = document.getElementById("nav-" + e)
       if (domElement) {
         domElement.addEventListener("click", () => {
-          navs.forEach(function(f){
+          categories.forEach(function(f){
             console.log(e)
             const contentElement = document.getElementById("content-" + f)
             if (contentElement){
@@ -176,6 +410,58 @@
         });
       }
     });
+
+    // refresh inventory
+    document.getElementById("refresh-inventory").addEventListener("click", function () {
+      updateInventory();
+    })
+
+    // import inventory
+    document.getElementById("import-inventory").addEventListener("change", function () {
+      if (this.files.length > 0) {
+        loadData(this.files[0]);
+        updateInventory();
+      }
+    });
+
+    // export inventory
+    document.getElementById("export-inventory").addEventListener("click", function () {
+      // Build export object
+      const exportData = {
+        ingredients: JSON.parse(localStorage.getItem("ingredients")) || {},
+        menu: JSON.parse(localStorage.getItem("menu")) || {}
+      };
+      const jsonString = JSON.stringify(exportData, null, 2);
+
+      // Create downloadable file
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      
+      // Make downloader
+      const a = document.createElement("a");
+      a.href = url;
+
+      // Name file accordingly
+      const now = new Date();
+      const timestamp = now.toISOString().replace("T", "_").split(".")[0].replace(/:/g, "-");
+      a.download = `inventory_${timestamp}.json`;
+      
+      // Download file and remove downloader
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+    });
+
+    // ingredient overlay - add item
+    document.getElementById("ingredients_additem").addEventListener("click", showIngredientOverlay);
+    // ingredient overlay - cancel
+    document.getElementById("ingredient-save").addEventListener("click", saveIngredient);
+    document.getElementById("ingredient-cancel").addEventListener("click", hideOverlay);
+
+    // init
+    updateInventory();
 
   </script>
 

@@ -1,9 +1,16 @@
 {
-  "materials": {
+  "ingredients": {
     "milk": {
-      "name": "Milk",
+      "name": "Oatside",
       "unit": "mL",
-      "amount": 1000.0
+      "amount": 1000.0,
+      "lastRestock": "2026-06-22T14:30:00Z"
+    },
+    "groundSagada": {
+      "name": "Ground Sagada Beans",
+      "unit": "g",
+      "amount": 1000.0,
+      "lastRestock": "2026-06-22T14:30:00Z"
     }
   },
 
@@ -11,7 +18,7 @@
     "spanish_latte_m": {
       "name": "Medium Spanish Latte",
       "price": 130.0,
-      "materialCost": {
+      "ingredients": {
         "milk": 100.0
       }
     }
