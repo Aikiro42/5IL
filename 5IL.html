@@ -225,8 +225,8 @@
         </template>-->
 
         <div class="button-row">
-          <button id="ingredient-save">💾 Save</button>
-          <button id="ingredient-cancel" onclick="hideOverlay()">❌ Cancel</button>
+          <button id="stock-save">💾 Save</button>
+          <button id="stock-cancel" onclick="hideOverlay()">❌ Cancel</button>
         </div>
       </div>
     </div>
@@ -346,6 +346,10 @@
     ]
 
     const STORAGE_KEY = "5IL_appdata"
+    const APPDATA = {
+      ingredients: {},
+      menu: {}
+    }
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleBtn");
     const content = document.getElementById("content")
@@ -393,6 +397,7 @@
 
           // Save entire JSON under one key
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          loadStorage();
 
           console.log("Data loaded successfully.");
 
@@ -406,6 +411,12 @@
       };
 
       reader.readAsText(jsonFile);
+    }
+
+    function loadStorage(){
+      const storageData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
+      APPDATA.ingredients = storageData.ingredients || {}
+      APPDATA.menu = storageData.menu || {}
     }
 
     function exportData(){
@@ -444,17 +455,15 @@
       showOverlay("stockitem");
     }
     function calculateAvailableStock(ingredients){
-      const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
       var minCount = 99 // FIXME: max?
       for (const [id, amount] of Object.entries(ingredients || {})) {
-        minCount = Math.min(Math.floor(appdata.ingredients[id].amount/amount), minCount)
+        minCount = Math.min(Math.floor(APPDATA.ingredients[id].amount/amount), minCount)
       }
       return minCount;
     }
     function deleteStockItem(id){
-        const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
-        delete appdata.menu[id];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appdata));
+        delete APPDATA.menu[id];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
         updateInventory(); // Refresh the table
     }
     function updateStock(){
@@ -466,10 +475,9 @@
       stockContent.innerHTML = "";
 
       // Load ingredients
-      const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
       
       // Add rows
-      for (const [id, stockitem] of Object.entries(appdata.menu)) {
+      for (const [id, stockitem] of Object.entries(APPDATA.menu)) {
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -519,6 +527,7 @@
     }
 
     function saveIngredient() {
+      const ingredient_id = document.getElementById("edit-ingredient-id").value
       const ingredient_name = document.getElementById("edit-ingredient-name").value || "Unknown Ingredient";
       const ingredient_unit = document.getElementById("edit-ingredient-unit").value || "U";
       const ingredient_amount = Number(document.getElementById("edit-ingredient-amount").value) || 0;
@@ -536,20 +545,18 @@
       };
 
       // obtain id
-      const id = `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
+      const id = ingredient_id || `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
         
-      const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
-      appdata.ingredients[id] = ingredient;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appdata));
+      APPDATA.ingredients[id] = ingredient;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
 
       updateInventory();
       hideOverlay();
     }
 
     function deleteIngredient(id){
-        const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
-        delete appdata.ingredients[id];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appdata));
+        delete APPDATA.ingredients[id];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
         updateInventory(); // Refresh the table
     }
 
@@ -561,11 +568,8 @@
       // Clear old rows
       ingredientsContent.innerHTML = "";
 
-      // Load ingredients
-      const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
-      
       // Add rows
-      for (const [id, ingredient] of Object.entries(appdata.ingredients)) {
+      for (const [id, ingredient] of Object.entries(APPDATA.ingredients)) {
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -626,7 +630,8 @@
       }
     });
 
-    document.getElementById("nav-" + categories[0]).click()
+    document.getElementById("nav-ingredients").click()
+    // document.getElementById("nav-" + categories[0]).click()
 
     // refresh inventory
     document.getElementById("refresh-inventory").addEventListener("click", function () {
@@ -643,7 +648,7 @@
 
 
     // STOCK HANDLERS
-    document.getElementById("stock_additem").addEventListener("click", showStockItemOverlay);
+    document.getElementById("stock_additem").addEventListener("click", () => {showStockItemOverlay();});
 
     // INVENTORY HANDLERS
 
@@ -657,6 +662,7 @@
     document.getElementById("ingredient-cancel").addEventListener("click", hideOverlay);
 
     // init
+    loadStorage();
     updateInventory();
     updateStock();
 
