@@ -34,6 +34,32 @@
     .content { flex: 1; padding: 30px; background: #f4f4f4; overflow-y: auto; min-width: 800px;}
     #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
 
+        
+    /* table */
+    .generic-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden; /* keeps rounded corners clean */
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    /* Header styling */
+    .generic-table  thead { background-color: #2c3e50; color: #ffffff; }
+    .generic-table  th { text-align: left; padding: 12px 16px; font-weight: 600; letter-spacing: 0.3px; }
+    /* Body cells */
+    .generic-table  td { padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #333; }
+    .generic-table  tbody tr:nth-child(even) { background-color: #f8f9fa; }  /* Zebra striping for readability */
+    /* Hover effect */
+    .generic-table  tbody tr:hover { background-color: #eef3f7; }
+    /* Make sure it adapts nicely in dynamic layouts */
+    .generic-table  { max-width: 100%; display: table; }
+    .generic-table .generic-additem:hover{ cursor: pointer; }
+    .generic-table .generic-additem:active{ cursor: pointer; background-color: #c1c4c7; }
+    .table-wrapper { width: 100%; overflow-x: auto; }
+
     /* SECTION: Ingredients */
     
     /*import/export inventory*/
@@ -63,41 +89,14 @@
     }
     .refresh-button:hover { background: #e3e3e3; }
     .refresh-button:active { transform: scale(0.98); }
-    
-    /* table */
-    #ingredients_table {
-      width: 100%;
-      border-collapse: collapse;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      background-color: #fff;
-      border-radius: 8px;
-      overflow: hidden; /* keeps rounded corners clean */
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
 
-    /* Header styling */
-    #ingredients_table thead { background-color: #2c3e50; color: #ffffff; }
-    #ingredients_table th { text-align: left; padding: 12px 16px; font-weight: 600; letter-spacing: 0.3px; }
-    /* Body cells */
-    #ingredients_table td { padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #333; }
-    #ingredients_table tbody tr:nth-child(even) { background-color: #f8f9fa; }  /* Zebra striping for readability */
-
-    /* Hover effect */
-    #ingredients_table tbody tr:hover { background-color: #eef3f7; }
-
-    /* Make sure it adapts nicely in dynamic layouts */
-    #ingredients_table { max-width: 100%; display: table; }
-    
-    #ingredients_table #ingredients_additem:hover{ cursor: pointer; }
-    #ingredients_table #ingredients_additem:active{ cursor: pointer; background-color: #c1c4c7; }
-    .table-wrapper { width: 100%; overflow-x: auto; }
 
     /* Edit Ingredient */
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5);
       display: flex; justify-content: center; align-items: center;
       z-index: 1000;
     }
+    .overlay.hidden { display: none; }
 
     .popup { background: white; padding: 24px; border-radius: 16px; width: min(500px, 90vw);
       display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.2);
@@ -143,6 +142,31 @@
   </aside>
 
   <div id="overlay" class="hidden">
+
+    <!-- OVERLAY: Stock -->
+    <div id="overlay-stockitem" class="overlay hidden">
+      <div class="popup">
+        <h1>Edit Menu Item</h1>
+
+        <input type="hidden" id="edit-stock-id">
+
+        <div class="form-group">
+          <label for="edit-stock-name">Item Name</label>
+          <input type="text" id="edit-stock-name" placeholder="Spanish Latte">
+        </div>
+
+        <div class="form-group">
+          <input type="hidden" id="edit-stock-ingredients">
+          <!-- TODO: editable ingredients table-->
+        </div>
+
+        <div class="button-row">
+          <button id="ingredient-save">💾 Save</button>
+          <button id="ingredient-cancel" onclick="hideOverlay()">❌ Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- OVERLAY: Ingredients -->
     <div id="overlay-ingredients" class="overlay hidden">
       <div class="popup">
@@ -172,13 +196,44 @@
 
         <div class="button-row">
           <button id="ingredient-save">💾 Save</button>
-          <button id="ingredient-cancel" onclick="cancelOverlay()">❌ Cancel</button>
+          <button id="ingredient-cancel" onclick="hideOverlay()">❌ Cancel</button>
         </div>
       </div>
     </div>
+
   </div>
 
   <main class="content" id="content">
+
+    <div id="content-stock">
+      <h1>Stock</h1>
+      <div class="table-wrapper">
+        <table id="stock_table" class="generic-table">
+          <thead>
+            <tr>
+              <th>Menu Item</th>
+              <th>Units Available</th>
+              <th>Edit</th>
+            </tr>
+          </thead>
+          <tbody id="stock_table_content">
+            <!--
+            <td>${stockitem.name}</td>
+            <td>${calculateAvailableStock(stockitem.id)}</td>
+            <td>
+              <span class="small-button edit-button">✏️</span>
+              <span class="small-button delete-button">🗑️</span>
+            </td>
+            -->
+          </tbody>
+          <tr>
+            <td id="stock_additem" class="generic-additem" colspan="3">
+              ➕ Add menu item
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
     
     <!--CONTENT: Ingredients-->
     <div id="content-ingredients">
@@ -195,7 +250,7 @@
       </span>
 
       <div class="table-wrapper">
-        <table id="ingredients_table">
+        <table id="ingredients_table" class="generic-table">
           <thead>
             <tr>
               <th>Ingredient</th>
@@ -208,7 +263,7 @@
           <tbody id="ingredients_table_content">
           </tbody>
           <tr>
-            <td id="ingredients_additem" colspan="5">
+            <td id="ingredients_additem" class="generic-additem" colspan="5">
               ➕ Add item
             </td>
           </tr>
@@ -229,7 +284,8 @@
     ];
 
     const overlays = [
-      "ingredients"
+      "ingredients",
+      "stockitem"
     ]
 
     const STORAGE_KEY = "5IL_appdata"
@@ -261,7 +317,8 @@
       // show the selected overlay
       const selectedOverlayCategory = document.getElementById("overlay-" + overlayName)
       if (selectedOverlayCategory) {
-        selectedOverlayCategory.classList.add("hidden");
+        console.log(overlayName)
+        selectedOverlayCategory.classList.remove("hidden");
       }
     }
 
@@ -318,6 +375,15 @@
       URL.revokeObjectURL(url);
 
     }
+
+    // SECTION: STOCK
+    function showStockItemOverlay(id, name, ingredients){
+      document.getElementById("edit-stock-id").value = id || "";
+      document.getElementById("edit-stock-name").value = name || "";
+      document.getElementById("edit-stock-ingredients").value = ingredients || {};
+      // TODO: render stock ingredients table
+      showOverlay("stockitem");
+    }
     
     // SECTION: INGREDIENTS
 
@@ -335,7 +401,7 @@
       }
 
       // Show overlay
-      showOverlay("ingredients")
+      showOverlay("ingredients");
     }
 
     function saveIngredient() {
@@ -446,6 +512,8 @@
       }
     });
 
+    document.getElementById("nav-" + categories[0]).click()
+
     // refresh inventory
     document.getElementById("refresh-inventory").addEventListener("click", function () {
       updateInventory();
@@ -458,6 +526,12 @@
         updateInventory();
       }
     });
+
+
+    // STOCK HANDLERS
+    document.getElementById("stock_additem").addEventListener("click", showStockItemOverlay);
+
+    // INVENTORY HANDLERS
 
     // export inventory
     document.getElementById("export-inventory").addEventListener("click", exportData);
