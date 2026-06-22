@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collapsible Sidebar</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+      .hidden { display: none; }
+      body { display: flex; height: 100vh; overflow: hidden; }
+
+      /* Sidebar */
+      .sidebar { width: 250px; background: #2c3e50; color: white; transition: width 0.3s ease; overflow: hidden; display: flex; flex-direction: column; }
+      .sidebar.collapsed { width: 70px; }
+      .sidebar-header { padding: 20px; background: #1f2d3a; display: flex; justify-content: space-between; align-items: center; }
+
+.sidebar.collapsed .title {
+    display: none;
+}
+
+.toggle-btn {
+    cursor: pointer;
+    font-size: 20px;
+    user-select: none;
+}
+
+.nav {
+    list-style: none;
+}
+
+.nav li {
+    padding: 15px 20px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nav li:hover {
+    background: #34495e;
+}
+
+.sidebar.collapsed .nav-text {
+    display: none;
+}
+
+/* Main content */
+
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #f4f4f4;
+    overflow-y: auto;
+}
+
+/*Ingredients Table*/
+#ingredients_table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden; /* keeps rounded corners clean */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Header styling */
+#ingredients_table thead {
+  background-color: #2c3e50;
+  color: #ffffff;
+}
+
+#ingredients_table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Body cells */
+#ingredients_table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ecf0f1;
+  color: #333;
+}
+
+/* Zebra striping for readability */
+#ingredients_table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* Hover effect */
+#ingredients_table tbody tr:hover {
+  background-color: #eef3f7;
+}
+
+/* Make sure it adapts nicely in dynamic layouts */
+#ingredients_table {
+  max-width: 100%;
+  display: table;
+}
+
+#ingredients_table #ingredients_additem:hover{
+  cursor: pointer;
+}
+
+#ingredients_table #ingredients_additem:active{
+  cursor: pointer;
+  background-color: #c1c4c7;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-header">
+            <span class="title">Dashboard</span>
+            <span class="toggle-btn" id="toggleBtn">☰</span>
+        </div>
+
+        <ul class="nav">
+            <li id="nav_dashboard">
+              🏠 <span class="nav-text">Dashboard</span>
+            </li>
+            <li id="nav_orders">
+              📝 <span class="nav-text">Orders</span>
+            </li>
+            <li id="nav_stock">
+              📦 <span class="nav-text">Stock</span>
+            </li>
+            <li id="nav_ingredients">
+              🧪 <span class="nav-text">Ingredients</span>
+            </li>
+            <li>
+              📄 <span class="nav-text">Reports</span>
+            </li>
+            <li>
+              ⚙️ <span class="nav-text">Settings</span>
+            </li>
+        </ul>
+
+    </aside>
+
+    <main class="content" id="content">
+
+      <div id="content-ingredients">
+<div class="table-wrapper">
+<table id="ingredients_table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Ingredient</th>
+      <th>Unit</th>
+      <th>Amount</th>
+      <th>Last Restock</th>
+    </tr>
+  </thead>
+  <tbody id="ingredients_table_content">
+  </tbody>
+  <tr>
+    <td id="ingredients_additem" colspan="5">
+      ➕ Add item
+    </td>
+  </tr>
+</table>
+</div>
+
+      </div>
+
+    </main>
+
+    <script>
+      const sidebar = document.getElementById("sidebar");
+      const toggleBtn = document.getElementById("toggleBtn");
+      const content = document.getElementById("content")
+
+      toggleBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+      });
+
+      // Loads the specified HTML
+      async function loadPage(htmlPath, targetDOM) {
+        try {
+          const response = await fetch(htmlPath);
+
+          if (!response.ok) {
+            throw new Error(`Failed to load ${htmlPath}`);
+          }
+
+          const html = await response.text();
+          targetDOM.innerHTML = html;
+        } catch (error) {
+          targetDOM.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
+          console.error(error);
+        }
+      }
+
+      // init navbar click handlers
+
+      const navs = [
+        "dashboard",
+        "ingredients",
+        "stock",
+        "orders"
+      ];
+
+      navs.forEach(function(e){
+        const domElement = document.getElementById("nav_" + e)
+        if (domElement) {
+          domElement.addEventListener("click", () => {
+            navs.forEach(function(f){
+              console.log(e)
+              const contentElement = document.getElementById("content-" + f)
+              if (contentElement){
+                contentElement.classList.add("hidden");
+              }
+            });
+            const selectedContentElement = document.getElementById("content-" + e)
+            if (selectedContentElement){
+              selectedContentElement.classList.remove("hidden");
+            }
+          });
+        }
+      });
+
+    </script>
+
+</body>
+</html>
