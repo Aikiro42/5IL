@@ -3,23 +3,29 @@
     "milk": {
       "name": "Oatside",
       "unit": "mL",
-      "amount": 1000.0,
+      "amount": 1000,
       "lastRestock": "2026-06-22T14:30:00Z"
     },
     "groundSagada": {
       "name": "Ground Sagada Beans",
       "unit": "g",
-      "amount": 1000.0,
+      "amount": 90,
       "lastRestock": "2026-06-22T14:30:00Z"
+    },
+    "matcha_powder_1782139010072": {
+      "name": "Matcha Powder",
+      "unit": "g",
+      "amount": 1000,
+      "lastRestock": "2026-06-22T00:00:00.000Z"
     }
   },
-
   "menu": {
     "spanish_latte_m": {
       "name": "Medium Spanish Latte",
-      "price": 130.0,
+      "price": 130,
       "ingredients": {
-        "milk": 100.0
+        "milk": 100,
+        "groundSagada": 60
       }
     }
   }

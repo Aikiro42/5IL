@@ -155,6 +155,12 @@
           <input type="text" id="edit-stock-name" placeholder="Spanish Latte">
         </div>
 
+        
+        <div class="form-group">
+          <label for="edit-stock-price">Price</label>
+          <input type="number" id="edit-stock-price" min="0" step="0.01">
+        </div>
+
         <div class="form-group">
           <input type="hidden" id="edit-stock-ingredients">
 
@@ -171,6 +177,14 @@
 
             <tbody id="edit-stock-ingredients-tbody">
               <!-- Rows will be inserted here -->
+              <!--
+                <tr>
+                  <td><input type="dropdown" /></td>
+                  <td><input type="number" /></td>
+                  <span class="small-button edit-button">✏️</span>
+                  <span class="small-button delete-button">🗑️</span>
+                </tr>
+              -->
             </tbody>
             <tr>
               <td id="edit-stock-add-ingredient" class="generic-additem" colspan="3">
@@ -262,22 +276,15 @@
           <thead>
             <tr>
               <th>Menu Item</th>
+              <th>Price</th>
               <th>Units Available</th>
               <th>Edit</th>
             </tr>
           </thead>
           <tbody id="stock_table_content">
-            <!--
-            <td>${stockitem.name}</td>
-            <td>${calculateAvailableStock(stockitem.id)}</td>
-            <td>
-              <span class="small-button edit-button">✏️</span>
-              <span class="small-button delete-button">🗑️</span>
-            </td>
-            -->
           </tbody>
           <tr>
-            <td id="stock_additem" class="generic-additem" colspan="3">
+            <td id="stock_additem" class="generic-additem" colspan="4">
               ➕ Add menu item
             </td>
           </tr>
@@ -391,6 +398,7 @@
 
           // Update UI AFTER data is loaded
           updateInventory();
+          updateStock();
 
         } catch (err) {
           console.error("Invalid JSON file:", err);
@@ -427,12 +435,68 @@
     }
 
     // SECTION: STOCK
-    function showStockItemOverlay(id, name, ingredients){
+    function showStockItemOverlay(id, name, price, ingredients){
       document.getElementById("edit-stock-id").value = id || "";
       document.getElementById("edit-stock-name").value = name || "";
+      document.getElementById("edit-stock-price").value = price || 0;
       document.getElementById("edit-stock-ingredients").value = ingredients || {};
       // TODO: render stock ingredients table
       showOverlay("stockitem");
+    }
+    function calculateAvailableStock(ingredients){
+      const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
+      var minCount = 99 // FIXME: max?
+      for (const [id, amount] of Object.entries(ingredients || {})) {
+        minCount = Math.min(Math.floor(appdata.ingredients[id].amount/amount), minCount)
+      }
+      return minCount;
+    }
+    function deleteStockItem(id){
+        const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
+        delete appdata.menu[id];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appdata));
+        updateInventory(); // Refresh the table
+    }
+    function updateStock(){
+      const stockContent = document.getElementById("stock_table_content");
+
+      if (!stockContent) return;
+
+      // Clear old rows
+      stockContent.innerHTML = "";
+
+      // Load ingredients
+      const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
+      
+      // Add rows
+      for (const [id, stockitem] of Object.entries(appdata.menu)) {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${stockitem.name}</td>
+          <td>${stockitem.price}</td>
+          <td>${calculateAvailableStock(stockitem.ingredients)}</td>
+          <td>
+            <span class="small-button edit-button">✏️</span>
+            <span class="small-button delete-button">🗑️</span>
+          </td>
+        `;
+
+        row.querySelector(".edit-button").addEventListener("click", () => {
+          showStockItemOverlay(
+            id,
+            stockitem.name,
+            stockitem.price,
+            stockitem.ingredients
+          );
+        });
+
+        row.querySelector(".delete-button").addEventListener("click", () => {
+          deleteStockItem(id)
+        })
+
+        stockContent.appendChild(row);
+      }
     }
     
     // SECTION: INGREDIENTS
@@ -594,6 +658,7 @@
 
     // init
     updateInventory();
+    updateStock();
 
   </script>
 
