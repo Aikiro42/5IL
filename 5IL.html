@@ -180,6 +180,7 @@
     
     <!--CONTENT: Ingredients-->
     <div id="content-ingredients">
+      <h1>Ingredients</h1>
       <span id="refresh-inventory" class="refresh-button">
         🔄️
       </span>
@@ -430,7 +431,6 @@
       if (domElement) {
         domElement.addEventListener("click", () => {
           categories.forEach(function(f){
-            console.log(e)
             const contentElement = document.getElementById("content-" + f)
             if (contentElement){
               contentElement.classList.add("hidden");
