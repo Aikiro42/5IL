@@ -414,13 +414,20 @@
     }
 
     function loadStorage(){
+      // Loads from the localStorage to the APPDATA constant.
       const storageData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
       APPDATA.ingredients = storageData.ingredients || {}
       APPDATA.menu = storageData.menu || {}
     }
 
+    function saveStorage(){
+      // Saves APPDATA into localStorage.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
+    }
+
     function exportData(){
       // Build export object
+      saveStorage()
       const exportData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
       const jsonString = JSON.stringify(exportData, null, 2);
 
