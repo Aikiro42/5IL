@@ -9,7 +9,9 @@
     /* SECTION: Global CSS */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     .hidden { display: none; }
-    .small-button{ cursor: pointer; font-size: 1.5em;}
+    .small-button{ cursor: pointer; padding: 5px; border-radius: 2px; }
+    .small-button:hover { background: #d5d5d5; }
+    .small-button:active { transform: scale(0.98); }
     
     body { display: flex; height: 100vh; overflow: hidden; }
     
@@ -52,7 +54,7 @@
     }
     .export-button:hover { background: #eb4040; }
     .export-button:active { transform: scale(0.98); }
-
+    
     
     .refresh-button {
       background: #b2b2b2; color: white;
