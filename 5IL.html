@@ -656,7 +656,7 @@
     document.getElementById("export-inventory").addEventListener("click", exportData);
 
     // ingredient overlay - add item
-    document.getElementById("ingredients_additem").addEventListener("click", showIngredientOverlay);
+    document.getElementById("ingredients_additem").addEventListener("click", () => showIngredientOverlay());
     // ingredient overlay - cancel
     document.getElementById("ingredient-save").addEventListener("click", saveIngredient);
     document.getElementById("ingredient-cancel").addEventListener("click", hideOverlay);
