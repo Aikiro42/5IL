@@ -71,16 +71,16 @@
     </div>
 
     <ul class="nav">
-      <li id="nav_dashboard">
+      <li id="nav-dashboard">
         🏠 <span class="nav-text">Dashboard</span>
       </li>
-      <li id="nav_orders">
+      <li id="nav-orders">
         📝 <span class="nav-text">Orders</span>
       </li>
-      <li id="nav_stock">
+      <li id="nav-stock">
         📦 <span class="nav-text">Stock</span>
       </li>
-      <li id="nav_ingredients">
+      <li id="nav-ingredients">
         🧪 <span class="nav-text">Ingredients</span>
       </li>
       <li>
@@ -156,8 +156,10 @@
       "orders"
     ];
 
+    /*
+    */
     navs.forEach(function(e){
-      const domElement = document.getElementById("nav_" + e)
+      const domElement = document.getElementById("nav-" + e)
       if (domElement) {
         domElement.addEventListener("click", () => {
           navs.forEach(function(f){
