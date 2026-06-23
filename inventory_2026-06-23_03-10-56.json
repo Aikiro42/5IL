@@ -71,6 +71,13 @@
       "name": "dddd",
       "price": 133,
       "ingredients": {}
+    },
+    "ewq_1782184247693": {
+      "name": "ewq",
+      "price": 14,
+      "ingredients": {
+        "milk": 15
+      }
     }
   }
 }

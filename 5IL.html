@@ -33,6 +33,20 @@
     .content { flex: 1; padding: 30px; background: #f4f4f4; overflow-y: auto; min-width: 800px;}
     #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
 
+    /* SECTION: Overlay */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    .overlay .popup { background: white; padding: 24px; border-radius: 16px; width: min(500px, 90vw);
+      display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+    }
+    .overlay .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .overlay .form-group label { font-weight: bold; }
+    .overlay .form-group input { padding: 12px; font-size: 1rem; }
+    .overlay .button-row { display: flex; justify-content: space-between; gap: 12px; }
+    .overlay .button-row button { flex: 1; padding: 14px; font-size: 1rem; }
+
         
     /* table */
     .generic-table {
@@ -89,23 +103,6 @@
     .refresh-button:hover { background: #e3e3e3; }
     .refresh-button:active { transform: scale(0.98); }
 
-
-    /* Edit Ingredient */
-    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5);
-      display: flex; justify-content: center; align-items: center;
-      z-index: 1000;
-    }
-    .overlay.hidden { display: none; }
-
-    .popup { background: white; padding: 24px; border-radius: 16px; width: min(500px, 90vw);
-      display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.2);
-    }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-weight: bold; }
-    .form-group input { padding: 12px; font-size: 1rem; }
-    .button-row { display: flex; justify-content: space-between; gap: 12px; }
-    .button-row button { flex: 1; padding: 14px; font-size: 1rem; }
-
     /* SECTION: Stock */
     #stock-content-wrapper {display: flex; gap: 3%; margin-top: 3%;}
     #stock-table-wrapper { width: 50%;}
@@ -117,6 +114,9 @@
     #edit-stock-wrapper table{
       box-shadow: 0 8px 16px rgba(0,0,0,.2);
       margin: 3% 0;
+    }
+    #edit-stock-ingredient-amount {
+      width: 75%;
     }
   
 
@@ -291,7 +291,7 @@
           <div class="button-row">
             <button id="stock-add">➕ Add</button>
             <button id="stock-save">💾 Save</button>
-            <button id="stock-cancel" onclick="unselectStock()">❌ Cancel</button>
+            <button id="stock-cancel" onclick="deselectStock()">❌ Cancel</button>
           </div>
 
         </div>
@@ -474,6 +474,21 @@
       if (minCount === -1) minCount = 0;
       return minCount;
     }
+    function generateIngredientDropdown(id, selectedIngredientId){
+      const dropdownDOMElement = document.createElement("select");
+      dropdownDOMElement.name = id
+      dropdownDOMElement.id = id
+      for (const [id, ingredient] of Object.entries(DB.data.ingredients)) {
+        const ingredientItem = document.createElement("option")
+        ingredientItem.value = id;
+        ingredientItem.innerHTML = ingredient.name;
+        if (selectedIngredientId === id){
+          ingredientItem.selected = true;
+        }
+        dropdownDOMElement.append(ingredientItem);
+      }
+      return dropdownDOMElement;
+    }
     function updateStockItem(id, name, price, ingredients){
       DB.data.menu[id] = {
         name,
@@ -515,25 +530,7 @@
         radioButton.value = id;
         row.addEventListener("click", () => {
           row.querySelector(".stock-selector").checked = true;
-          document.getElementById("edit-stock-id").value = id;
-          document.getElementById("edit-stock-name").value = stockitem.name;
-          document.getElementById("edit-stock-price").value = stockitem.price;
-          // update ingredients
-          document.getElementById("edit-stock-ingredients").value = JSON.stringify(stockitem.ingredients);
-          const editStockIngredientTableBody = document.getElementById("edit-stock-ingredients-tbody");
-          editStockIngredientTableBody.innerHTML = "";
-          for (const [ingredientId, amount] of Object.entries(stockitem.ingredients)) {
-            const ingredientRow = document.createElement("tr");
-            ingredientRow.innerHTML = `
-              <td>${DB.data.ingredients[ingredientId].name}</td>
-              <td>${amount} ${DB.data.ingredients[ingredientId].unit}</td>
-              <td>
-                <span class="small-button edit-button">✏️</span>
-                <span class="small-button delet-button">🗑️</span>
-              </td>
-            `;
-            editStockIngredientTableBody.appendChild(ingredientRow);
-          }
+          updateEditStockUI(id, stockitem.name, stockitem.price, stockitem.ingredients)
         })
         /*
         row.querySelector(".edit-button").addEventListener("click", () => {
@@ -554,9 +551,129 @@
         stockContent.appendChild(row);
       }
     }
-    function unselectStock(){
+    function generateStockIngredientRow(id, name, price, ingredientId, amount){
+      const ingredientRow = document.createElement("tr");
+      amount = amount || 0;
+      if (!ingredientId) {
+        ingredientRow.innerHTML = `
+          <td class="edit-stock-ingredient-name"></td>
+          <td class="edit-stock-ingredient-amount"></td>
+          <td>
+            <span class="small-button edit-button">✏️</span>
+            <span class="small-button save-button hidden">💾</span>
+            <span class="small-button delete-button">🗑️</span>
+          </td>
+        `
+      }else{
+        ingredientRow.innerHTML = `
+          <td class="edit-stock-ingredient-name">${DB.data.ingredients[ingredientId].name}</td>
+          <td class="edit-stock-ingredient-amount">${amount} ${DB.data.ingredients[ingredientId].unit}</td>
+          <td>
+            <span class="small-button edit-button">✏️</span>
+            <span class="small-button save-button hidden">💾</span>
+            <span class="small-button delete-button">🗑️</span>
+          </td>
+        `;
+      }
+      
+      ingredientRow.querySelector(".delete-button").addEventListener("click", () => {
+        delete ingredients[ingredientId];
+        console.log(ingredients);
+        document.getElementById("edit-stock-ingredients").value = JSON.stringify(ingredients);
+        updateEditStockUI(id, name, price, ingredients);
+      });
+      
+      const editIngredientDOMElement = ingredientRow.querySelector(".edit-button")
+      const saveIngredientDOMElement = ingredientRow.querySelector(".save-button")
+      
+      // to edit ingredient
+      editIngredientDOMElement.addEventListener("click", () => {
+        // show save button
+        editIngredientDOMElement.classList.add("hidden");
+        saveIngredientDOMElement.classList.remove("hidden");
+
+        // remove ingredient from json stored in hidden element
+        if (ingredientId) {
+          const tempIngredients = JSON.parse(document.getElementById("edit-stock-ingredients").value || "{}");
+          delete tempIngredients[ingredientId];
+          document.getElementById("edit-stock-ingredients").value = JSON.stringify(tempIngredients);
+        }
+
+        // ingredient selector
+        const editIngredientNameDOMElement = ingredientRow.querySelector(".edit-stock-ingredient-name")
+        editIngredientNameDOMElement.innerHTML = '';
+        editIngredientNameDOMElement.append(generateIngredientDropdown("edit-stock-ingredient-name", ingredientId));
+        
+        // editable amount
+        const editIngredientAmountDOMElement = ingredientRow.querySelector(".edit-stock-ingredient-amount")
+        if (ingredientId) {
+          editIngredientAmountDOMElement.innerHTML = `
+            <input type="text" id="edit-stock-ingredient-amount" /> ${DB.data.ingredients[ingredientId].unit}
+          `;
+        }else{
+          editIngredientAmountDOMElement.innerHTML = `
+            <input type="text" id="edit-stock-ingredient-amount" />
+          `;
+        }
+        document.getElementById("edit-stock-ingredient-amount").value = amount || 0;
+      });
+      
+      // to save ingredient
+      saveIngredientDOMElement.addEventListener("click", () => {
+
+        const newIngredientId = document.getElementById("edit-stock-ingredient-name").value
+        const newAmount = Number(document.getElementById("edit-stock-ingredient-amount").value || "0") || "0";
+
+        // save ingredient to json stored in hidden element
+        const tempIngredients = JSON.parse(document.getElementById("edit-stock-ingredients").value || "{}");
+        if (newIngredientId in tempIngredients ) {
+          tempIngredients[newIngredientId] += newAmount
+        }else{
+          tempIngredients[newIngredientId] = newAmount;
+        }
+        document.getElementById("edit-stock-ingredients").value = JSON.stringify(tempIngredients);
+        
+        /*
+        // revert inputs to text
+        ingredientRow.querySelector(".edit-stock-ingredient-name").innerHTML = DB.data.ingredients[newIngredientId].name;
+        ingredientRow.querySelector(".edit-stock-ingredient-amount").innerHTML = `${newAmount} ${DB.data.ingredients[newIngredientId].unit}`;
+        
+        // show edit button
+        editIngredientDOMElement.classList.remove("hidden");
+        saveIngredientDOMElement.classList.add("hidden");
+        */
+        // refresh stock ingredients table
+        
+        loadStockIngredientsTable(id, name, price, tempIngredients);
+
+      });
+
+      return ingredientRow;
+
+    }
+    function loadStockIngredientsTable(id, name, price, ingredients){
+      const editStockIngredientTableBody = document.getElementById("edit-stock-ingredients-tbody");
+      editStockIngredientTableBody.innerHTML = "";
+      for (const [ingredientId, amount] of Object.entries(ingredients)) {
+        editStockIngredientTableBody.appendChild(generateStockIngredientRow(id, name, price, ingredientId, amount));
+      }
+    }
+    function updateEditStockUI(id, name, price, ingredients){
+      document.getElementById("edit-stock-id").value = id;
+      document.getElementById("edit-stock-name").value = name;
+      document.getElementById("edit-stock-price").value = price;
+      
+      // update ingredients
+      document.getElementById("edit-stock-ingredients").value = JSON.stringify(ingredients);
+      loadStockIngredientsTable(id, name, price, ingredients);
+
+    }
+    function deselectStock(){
+      document.getElementById("edit-stock-id").value = "";
       document.getElementById("edit-stock-name").value = "";
       document.getElementById("edit-stock-price").value = 0;
+      document.getElementById("edit-stock-ingredients").value = "{}";
+      document.getElementById("edit-stock-ingredients-tbody").innerHTML = "";
       updateStock();
     }
     
@@ -604,6 +721,8 @@
       DB.save();
 
       updateInventory();
+      updateStock();
+      deselectStock();
       hideOverlay();
     }
 
@@ -692,6 +811,7 @@
     // refresh inventory
     document.getElementById("refresh-inventory").addEventListener("click", function () {
       updateInventory();
+      updateStock();
     })
 
     // import inventory
@@ -706,6 +826,13 @@
 
 
     // STOCK HANDLERS
+    document.getElementById("edit-stock-add-ingredient").addEventListener("click", () => {
+      const editStockIngredientTableBody = document.getElementById("edit-stock-ingredients-tbody");
+      const editStockId = document.getElementById("edit-stock-id").value || "";
+      const editStockName = document.getElementById("edit-stock-name").value || "";
+      const editStockPrice = Number(document.getElementById("edit-stock-price").value || "0");
+      editStockIngredientTableBody.appendChild(generateStockIngredientRow(editStockId, editStockName, editStockPrice));
+    })
     document.getElementById("stock-add").addEventListener("click", () => {
       name = document.getElementById("edit-stock-name").value || "Item";
       price = Number(document.getElementById("edit-stock-price").value || "0") || 0;
@@ -716,7 +843,8 @@
       name = document.getElementById("edit-stock-name").value || "Item";
       price = Number(document.getElementById("edit-stock-price").value || "0") || 0;
       id = document.getElementById("edit-stock-id").value || `${name}_${Date.now()}`;
-      updateStockItem(id, name, price, {});
+      ingredients = JSON.parse(document.getElementById("edit-stock-ingredients").value || "{}");
+      updateStockItem(id, name, price, ingredients);
     });
 
     // INVENTORY HANDLERS
