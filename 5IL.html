@@ -47,6 +47,45 @@
     .overlay .button-row { display: flex; justify-content: space-between; gap: 12px; }
     .overlay .button-row button { flex: 1; padding: 14px; font-size: 1rem; }
 
+    
+    /*import/export inventory*/
+    .data-section {
+      margin-bottom: 3%;
+    }
+    .data-button {
+      display: inline-block;
+      padding: 15px;
+      margin-right: 1%;
+      font-size: 1rem; font-weight: 600;
+      background: #2d6cdf; color: white;
+      border-radius: 12px;
+      cursor: pointer; user-select: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+      vertical-align: middle;
+    }
+    .data-button:hover { background: #386fd5; color: white;}
+    .import-button:active { transform: scale(0.98); }
+
+    .export-button {
+      background: #df2d2d; color: white;
+    }
+    .export-button:hover { background: #eb4040; }
+    .export-button:active { transform: scale(0.98); }
+    
+    
+    .refresh-button {
+      width: 50px; height: 50px;
+      border-radius: 25px;
+      padding: 0px;
+      background: #565656; color: white;
+      line-height: 47px;
+      font-size: 2em;
+      text-align: center;
+      transform: scale(0.98);
+    }
+    .refresh-button:hover { background: #646464; transform: scale(1); }
+    .refresh-button:active { transform: scale(0.95); }
         
     /* table */
     .generic-table {
@@ -74,34 +113,6 @@
     .table-wrapper { width: 100%; overflow-x: auto; }
 
     /* SECTION: Ingredients */
-    
-    /*import/export inventory*/
-    .import-button,.export-button,.refresh-button {
-      display: inline-block;
-      padding: 14px 20px;
-      margin: 1em;
-      font-size: 1rem; font-weight: 600;
-      background: #2d6cdf; color: white;
-      border-radius: 12px;
-      cursor: pointer; user-select: none;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      transition: all 0.2s ease;
-    }
-    .import-button:hover { background: #386fd5; }
-    .import-button:active { transform: scale(0.98); }
-
-    .export-button {
-      background: #df2d2d; color: white;
-    }
-    .export-button:hover { background: #eb4040; }
-    .export-button:active { transform: scale(0.98); }
-    
-    
-    .refresh-button {
-      background: #b2b2b2; color: white;
-    }
-    .refresh-button:hover { background: #e3e3e3; }
-    .refresh-button:active { transform: scale(0.98); }
 
     /* SECTION: Stock */
     #stock-content-wrapper {display: flex; gap: 3%; margin-top: 3%;}
@@ -204,14 +215,14 @@
 
   <main class="content" id="content">
     <div class="data-section">
-      <span id="refresh-inventory" class="refresh-button">
-        🔄️
+      <span id="refresh-inventory" class="data-button refresh-button">
+        ⟳
       </span>
-      <label for="import-inventory" class="import-button">
+      <label for="import-inventory" class="data-button import-button">
         📥 Import Inventory Data
       </label>
       <input type="file" id="import-inventory" class="hidden" accept=".json">
-      <span id="export-inventory" class="export-button">
+      <span id="export-inventory" class="data-button export-button">
         📤 Export Inventory Data
       </span>
     </div>
