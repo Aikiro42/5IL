@@ -344,10 +344,6 @@
         }
       }
 
-      get ingredients() {return this.data.ingredients || {}}
-      get menu() {return this.data.menu || {}}
-      get transactions() {return this.data.transactions || []}
-
       constructor(jsonFile, callback) {
         if (!jsonFile) {
           this.data = this.default
