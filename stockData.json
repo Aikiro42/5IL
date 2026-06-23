@@ -58,7 +58,12 @@
     },
     "purp_drank": {
       "name": "Purp Drank",
-      "price": 67,
+      "price": 123,
+      "ingredients": {}
+    },
+    "dddd_1782179357342": {
+      "name": "dddd",
+      "price": 133,
       "ingredients": {}
     }
   }

@@ -215,6 +215,7 @@
         📤 Export Inventory Data
       </span>
     </div>
+    
     <!--CONTENT: Stock-->
     <div id="content-stock">
       <h1>Stock</h1>
@@ -462,7 +463,7 @@
       showOverlay("stockitem");
     }
     function calculateAvailableStock(ingredients){
-      var minCount = -1 // FIXME: max?
+      var minCount = -1;
       for (const [id, amount] of Object.entries(ingredients || {})) {
         if (minCount === -1){
           minCount = Math.floor(DB.data.ingredients[id].amount/amount)
@@ -473,10 +474,19 @@
       if (minCount === -1) minCount = 0;
       return minCount;
     }
+    function updateStockItem(id, name, price, ingredients){
+      DB.data.menu[id] = {
+        name,
+        price,
+        ingredients
+      }
+      DB.save();
+      updateStock();
+    }
     function deleteStockItem(id){
         delete DB.data.menu[id];
         DB.save();
-        updateInventory(); // Refresh the table
+        updateStock(); // Refresh the table
     }
     function updateStock(){
       const stockContent = document.getElementById("stock_table_content");
@@ -508,6 +518,22 @@
           document.getElementById("edit-stock-id").value = id;
           document.getElementById("edit-stock-name").value = stockitem.name;
           document.getElementById("edit-stock-price").value = stockitem.price;
+          // update ingredients
+          document.getElementById("edit-stock-ingredients").value = JSON.stringify(stockitem.ingredients);
+          const editStockIngredientTableBody = document.getElementById("edit-stock-ingredients-tbody");
+          editStockIngredientTableBody.innerHTML = "";
+          for (const [ingredientId, amount] of Object.entries(stockitem.ingredients)) {
+            const ingredientRow = document.createElement("tr");
+            ingredientRow.innerHTML = `
+              <td>${DB.data.ingredients[ingredientId].name}</td>
+              <td>${amount} ${DB.data.ingredients[ingredientId].unit}</td>
+              <td>
+                <span class="small-button edit-button">✏️</span>
+                <span class="small-button delet-button">🗑️</span>
+              </td>
+            `;
+            editStockIngredientTableBody.appendChild(ingredientRow);
+          }
         })
         /*
         row.querySelector(".edit-button").addEventListener("click", () => {
@@ -680,9 +706,17 @@
 
 
     // STOCK HANDLERS
-    // document.getElementById("stock_additem").addEventListener("click", () => {showStockItemOverlay();});
-    document.getElementById("edit-stock-id").addEventListener("change", () => {
-      console.log("hello world");
+    document.getElementById("stock-add").addEventListener("click", () => {
+      name = document.getElementById("edit-stock-name").value || "Item";
+      price = Number(document.getElementById("edit-stock-price").value || "0") || 0;
+      id = `${name}_${Date.now()}`;
+      updateStockItem(id, name, price, {});
+    });
+    document.getElementById("stock-save").addEventListener("click", () => {
+      name = document.getElementById("edit-stock-name").value || "Item";
+      price = Number(document.getElementById("edit-stock-price").value || "0") || 0;
+      id = document.getElementById("edit-stock-id").value || `${name}_${Date.now()}`;
+      updateStockItem(id, name, price, {});
     });
 
     // INVENTORY HANDLERS
