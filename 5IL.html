@@ -332,6 +332,89 @@
 
   <script>
 
+    const STORAGE_KEY = "5IL_appdata"
+
+    class AppData {
+
+      get default() {
+        return {
+          ingredients: {},
+          menu: {},
+          transactions: []
+        }
+      }
+
+      get ingredients() {return this.data.ingredients || {}}
+      get menu() {return this.data.menu || {}}
+      get transactions() {return this.data.transactions || []}
+
+      constructor(jsonFile) {
+        if (!jsonFile) {
+          this.data = this.default
+        }else{
+          this.import(jsonFile);
+        }
+      }
+
+      import(jsonFile) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            this.data = JSON.parse(e.target.result);
+            this.save()
+            console.log("Data loaded successfully.");
+          } catch (err) {
+            console.error("Invalid JSON file:", err);
+          }
+        };
+        reader.readAsText(jsonFile);
+      }
+
+      export(filename, doTimestamp) {
+        // Build export object
+        this.save()
+        const exportData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || this.default;
+        const jsonString = JSON.stringify(exportData, null, 2);
+
+        // Create downloadable file
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        // Make downloader
+        const a = document.createElement("a");
+        a.href = url;
+
+        const name = filename ? filename : `appdata`
+        var timestamp = '';
+        if (doTimestamp) {
+          const now = new Date();
+          timestamp = '_' + now.toISOString().replace("T", "_").split(".")[0].replace(/:/g, "-");
+        }
+        
+        // Name file accordingly
+        a.download = `${name + timestamp}.json`;
+        
+        // Download file and remove downloader
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // Saves data to localStorage
+      save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      }
+
+      load() {
+        const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || this.default;
+        this.data = appdata
+      }
+
+    }
+
+    const DB = new AppData()
+
     // CONSTANTS
     const categories = [
       "dashboard",
@@ -345,22 +428,10 @@
       "stockitem"
     ]
 
-    const STORAGE_KEY = "5IL_appdata"
-    const APPDATA = {
-      ingredients: {},
-      menu: {}
-    }
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleBtn");
     const content = document.getElementById("content")
     const overlay = document.getElementById("overlay")
-    
-    function defaultAppData(){
-      return {
-        ingredients: {},
-        menu: {}
-      }
-    }
 
     // GENERAL FUNCTIONS
     function showOverlay(overlayName){
@@ -387,71 +458,6 @@
       overlay.classList.add("hidden");
     }
 
-    // Load data from json file.
-    function loadData(jsonFile) {
-      const reader = new FileReader();
-
-      reader.onload = function (e) {
-        try {
-          const data = JSON.parse(e.target.result);
-
-          // Save entire JSON under one key
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          loadStorage();
-
-          console.log("Data loaded successfully.");
-
-          // Update UI AFTER data is loaded
-          updateInventory();
-          updateStock();
-
-        } catch (err) {
-          console.error("Invalid JSON file:", err);
-        }
-      };
-
-      reader.readAsText(jsonFile);
-    }
-
-    function loadStorage(){
-      // Loads from the localStorage to the APPDATA constant.
-      const storageData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
-      APPDATA.ingredients = storageData.ingredients || {}
-      APPDATA.menu = storageData.menu || {}
-    }
-
-    function saveStorage(){
-      // Saves APPDATA into localStorage.
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
-    }
-
-    function exportData(){
-      // Build export object
-      saveStorage()
-      const exportData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData();
-      const jsonString = JSON.stringify(exportData, null, 2);
-
-      // Create downloadable file
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      
-      // Make downloader
-      const a = document.createElement("a");
-      a.href = url;
-
-      // Name file accordingly
-      const now = new Date();
-      const timestamp = now.toISOString().replace("T", "_").split(".")[0].replace(/:/g, "-");
-      a.download = `inventory_${timestamp}.json`;
-      
-      // Download file and remove downloader
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-    }
-
     // SECTION: STOCK
     function showStockItemOverlay(id, name, price, ingredients){
       document.getElementById("edit-stock-id").value = id || "";
@@ -464,13 +470,13 @@
     function calculateAvailableStock(ingredients){
       var minCount = 99 // FIXME: max?
       for (const [id, amount] of Object.entries(ingredients || {})) {
-        minCount = Math.min(Math.floor(APPDATA.ingredients[id].amount/amount), minCount)
+        minCount = Math.min(Math.floor(DB.ingredients[id].amount/amount), minCount)
       }
       return minCount;
     }
     function deleteStockItem(id){
-        delete APPDATA.menu[id];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
+        delete DB.menu[id];
+        DB.save();
         updateInventory(); // Refresh the table
     }
     function updateStock(){
@@ -484,7 +490,7 @@
       // Load ingredients
       
       // Add rows
-      for (const [id, stockitem] of Object.entries(APPDATA.menu)) {
+      for (const [id, stockitem] of Object.entries(DB.menu)) {
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -554,16 +560,16 @@
       // obtain id
       const id = ingredient_id || `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
         
-      APPDATA.ingredients[id] = ingredient;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
+      DB.ingredients[id] = ingredient;
+      DB.save();
 
       updateInventory();
       hideOverlay();
     }
 
     function deleteIngredient(id){
-        delete APPDATA.ingredients[id];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(APPDATA));
+        delete DB.ingredients[id];
+        DB.save();
         updateInventory(); // Refresh the table
     }
 
@@ -576,7 +582,7 @@
       ingredientsContent.innerHTML = "";
 
       // Add rows
-      for (const [id, ingredient] of Object.entries(APPDATA.ingredients)) {
+      for (const [id, ingredient] of Object.entries(DB.ingredients)) {
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -648,8 +654,9 @@
     // import inventory
     document.getElementById("import-inventory").addEventListener("change", function () {
       if (this.files.length > 0) {
-        loadData(this.files[0]);
+        DB.import(this.files[0])
         updateInventory();
+        updateStock();
       }
     });
 
@@ -660,7 +667,7 @@
     // INVENTORY HANDLERS
 
     // export inventory
-    document.getElementById("export-inventory").addEventListener("click", exportData);
+    document.getElementById("export-inventory").addEventListener("click", () => DB.export('inventory', true));
 
     // ingredient overlay - add item
     document.getElementById("ingredients_additem").addEventListener("click", () => showIngredientOverlay());
@@ -669,7 +676,7 @@
     document.getElementById("ingredient-cancel").addEventListener("click", hideOverlay);
 
     // init
-    loadStorage();
+    DB.load();
     updateInventory();
     updateStock();
 
