@@ -39,6 +39,22 @@
         "milk": 100,
         "groundSagada": 60
       }
+    },
+    "spanish_latte_l": {
+      "name": "Large Spanish Latte",
+      "price": 160,
+      "ingredients": {
+        "milk": 150,
+        "groundSagada": 100
+      }
+    },
+    "barista_drink_m": {
+      "name": "Medium Barista's Drink",
+      "price": 130,
+      "ingredients": {
+        "milk": 150,
+        "groundSagada": 100
+      }
     }
   }
 }

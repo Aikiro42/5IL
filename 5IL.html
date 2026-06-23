@@ -8,7 +8,6 @@
 
     /* SECTION: Global CSS */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-    .hidden { display: none; }
     .small-button{ cursor: pointer; padding: 5px; border-radius: 2px; }
     .small-button:hover { background: #d5d5d5; }
     .small-button:active { transform: scale(0.98); }
@@ -105,8 +104,25 @@
     .form-group label { font-weight: bold; }
     .form-group input { padding: 12px; font-size: 1rem; }
     .button-row { display: flex; justify-content: space-between; gap: 12px; }
-    .button-row button { flex: 1; padding: 14px; font-size: 1rem; }   
+    .button-row button { flex: 1; padding: 14px; font-size: 1rem; }
+
+    /* SECTION: Stock */
+    #stock-content-wrapper {display: flex; gap: 3%; margin-top: 3%;}
+    #stock-table-wrapper { width: 50%;}
+    #edit-stock-wrapper {
+      border-radius: 16px;
+      background: white; box-shadow: 0 8px 32px rgba(0,0,0,.2); 
+      width: 40%; padding: 3%;
+    }
+    #edit-stock-wrapper table{
+      box-shadow: 0 8px 16px rgba(0,0,0,.2);
+      margin: 3% 0;
+    }
   
+
+    /* DYNAMIC CSS */
+    .hidden { display: none !important;  }
+    
   </style>
 </head>
 <body>
@@ -146,88 +162,7 @@
     <!-- OVERLAY: Stock -->
     <div id="overlay-stockitem" class="overlay hidden"> 
       <div class="popup">
-        <h1>Edit Menu Item</h1>
 
-        <input type="hidden" id="edit-stock-id">
-
-        <div class="form-group">
-          <label for="edit-stock-name">Item Name</label>
-          <input type="text" id="edit-stock-name" placeholder="Spanish Latte">
-        </div>
-
-        
-        <div class="form-group">
-          <label for="edit-stock-price">Price</label>
-          <input type="number" id="edit-stock-price" min="0" step="0.01">
-        </div>
-
-        <div class="form-group">
-          <input type="hidden" id="edit-stock-ingredients">
-
-          <label>Ingredients</label>
-
-          <table class="generic-table">
-            <thead>
-              <tr>
-                <th>Ingredient</th>
-                <th>Amount</th>
-                <th>Edit</th>
-              </tr>
-            </thead>
-
-            <tbody id="edit-stock-ingredients-tbody">
-              <!-- Rows will be inserted here -->
-              <!--
-                <tr>
-                  <td><input type="dropdown" /></td>
-                  <td><input type="number" /></td>
-                  <span class="small-button edit-button">✏️</span>
-                  <span class="small-button delete-button">🗑️</span>
-                </tr>
-              -->
-            </tbody>
-            <tr>
-              <td id="edit-stock-add-ingredient" class="generic-additem" colspan="3">
-                ➕ Add Ingredient
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <!-- Template row (can be cloned via JS) -->
-        <!--
-        <template id="ingredient-row-template">
-          <tr class="ingredient-row">
-            <td>
-              <input type="text" class="ingredient-name" placeholder="e.g. Milk">
-            </td>
-
-            <td>
-              <input type="number" class="ingredient-amount" min="0" step="0.01" placeholder="0">
-            </td>
-
-            <td>
-              <select class="ingredient-unit">
-                <option value="ml">ml</option>
-                <option value="g">g</option>
-                <option value="pcs">pcs</option>
-                <option value="tbsp">tbsp</option>
-                <option value="tsp">tsp</option>
-              </select>
-            </td>
-
-            <td>
-              <button type="button" class="remove-ingredient-row">
-                ❌
-              </button>
-            </td>
-          </tr>
-        </template>-->
-
-        <div class="button-row">
-          <button id="stock-save">💾 Save</button>
-          <button id="stock-cancel" onclick="hideOverlay()">❌ Cancel</button>
-        </div>
       </div>
     </div>
 
@@ -271,24 +206,86 @@
 
     <div id="content-stock">
       <h1>Stock</h1>
-      <div class="table-wrapper">
-        <table id="stock_table" class="generic-table">
-          <thead>
+      <div id="stock-content-wrapper">
+
+        <div id="stock-table-wrapper" class="table-wrapper">
+          <table id="stock_table" class="generic-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Menu Item</th>
+                <th>Price</th>
+                <th>Units Available</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="stock_table_content">
+            </tbody>
             <tr>
-              <th>Menu Item</th>
-              <th>Price</th>
-              <th>Units Available</th>
-              <th>Edit</th>
+              <td id="stock_additem" class="generic-additem" colspan="5">
+                ➕ Add menu item
+              </td>
             </tr>
-          </thead>
-          <tbody id="stock_table_content">
-          </tbody>
-          <tr>
-            <td id="stock_additem" class="generic-additem" colspan="4">
-              ➕ Add menu item
-            </td>
-          </tr>
-        </table>
+          </table>
+        </div>
+
+        <div id="edit-stock-wrapper">
+          <h1>Edit Menu Item</h1>
+
+          <input type="hidden" id="edit-stock-id">
+
+          <div class="form-group">
+            <label for="edit-stock-name">Item Name</label>
+            <input type="text" id="edit-stock-name" placeholder="Spanish Latte">
+          </div>
+
+          
+          <div class="form-group">
+            <label for="edit-stock-price">Price</label>
+            <input type="number" id="edit-stock-price" min="0" step="0.01">
+          </div>
+
+          <div class="form-group">
+            <input type="hidden" id="edit-stock-ingredients">
+
+            <label>Ingredients</label>
+
+            <table class="generic-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th>Amount</th>
+                  <th>Edit</th>
+                </tr>
+              </thead>
+
+              <tbody id="edit-stock-ingredients-tbody">
+                <!-- Rows will be inserted here -->
+                <!--
+                  <tr>
+                    <td><input type="dropdown" /></td>
+                    <td><input type="number" /></td>
+                    <span class="small-button edit-button">✏️</span>
+                    <span class="small-button delete-button">🗑️</span>
+                  </tr>
+                -->
+              </tbody>
+              <tr>
+                <td id="edit-stock-add-ingredient" class="generic-additem" colspan="3">
+                  ➕ Add Ingredient
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="button-row">
+            <button id="stock-save">💾 Save</button>
+            <button id="stock-cancel" onclick="hideOverlay()">❌ Cancel</button>
+          </div>
+
+        </div>
+
+
       </div>
     </div>
     
@@ -491,15 +488,19 @@
         const row = document.createElement("tr");
 
         row.innerHTML = `
+          <td><input type="radio" class="stock-selector" name="edit-stock-selected"/></td>
           <td>${stockitem.name}</td>
           <td>${stockitem.price}</td>
           <td>${calculateAvailableStock(stockitem.ingredients)}</td>
           <td>
-            <span class="small-button edit-button">✏️</span>
             <span class="small-button delete-button">🗑️</span>
           </td>
         `;
-
+        row.querySelector(".stock-selector").value = id;
+        row.addEventListener("click", () => {
+          row.querySelector(".stock-selector").checked = true;
+        })
+        /*
         row.querySelector(".edit-button").addEventListener("click", () => {
           showStockItemOverlay(
             id,
@@ -512,6 +513,7 @@
         row.querySelector(".delete-button").addEventListener("click", () => {
           deleteStockItem(id)
         })
+        */
 
         stockContent.appendChild(row);
       }
@@ -643,7 +645,7 @@
       }
     });
 
-    document.getElementById("nav-ingredients").click()
+    document.getElementById("nav-stock").click()
     // document.getElementById("nav-" + categories[0]).click()
 
     // refresh inventory
