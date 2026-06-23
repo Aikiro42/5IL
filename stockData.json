@@ -55,6 +55,11 @@
         "milk": 150,
         "groundSagada": 100
       }
+    },
+    "purp_drank": {
+      "name": "Purp Drank",
+      "price": 67,
+      "ingredients": {}
     }
   }
 }

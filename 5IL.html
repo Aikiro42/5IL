@@ -203,11 +203,24 @@
   </div>
 
   <main class="content" id="content">
-
+    <div class="data-section">
+      <span id="refresh-inventory" class="refresh-button">
+        🔄️
+      </span>
+      <label for="import-inventory" class="import-button">
+        📥 Import Inventory Data
+      </label>
+      <input type="file" id="import-inventory" class="hidden" accept=".json">
+      <span id="export-inventory" class="export-button">
+        📤 Export Inventory Data
+      </span>
+    </div>
+    <!--CONTENT: Stock-->
     <div id="content-stock">
       <h1>Stock</h1>
       <div id="stock-content-wrapper">
 
+        <!--Subcontent: Stock List-->
         <div id="stock-table-wrapper" class="table-wrapper">
           <table id="stock_table" class="generic-table">
             <thead>
@@ -221,14 +234,10 @@
             </thead>
             <tbody id="stock_table_content">
             </tbody>
-            <tr>
-              <td id="stock_additem" class="generic-additem" colspan="5">
-                ➕ Add menu item
-              </td>
-            </tr>
           </table>
         </div>
 
+        <!--Subcontent: Edit Stock Item-->
         <div id="edit-stock-wrapper">
           <h1>Edit Menu Item</h1>
 
@@ -279,8 +288,9 @@
           </div>
 
           <div class="button-row">
+            <button id="stock-add">➕ Add</button>
             <button id="stock-save">💾 Save</button>
-            <button id="stock-cancel" onclick="hideOverlay()">❌ Cancel</button>
+            <button id="stock-cancel" onclick="unselectStock()">❌ Cancel</button>
           </div>
 
         </div>
@@ -292,16 +302,6 @@
     <!--CONTENT: Ingredients-->
     <div id="content-ingredients">
       <h1>Ingredients</h1>
-      <span id="refresh-inventory" class="refresh-button">
-        🔄️
-      </span>
-      <label for="import-inventory" class="import-button">
-        📥 Import Inventory Data
-      </label>
-      <input type="file" id="import-inventory" class="hidden" accept=".json">
-      <span id="export-inventory" class="export-button">
-        📤 Export Inventory Data
-      </span>
 
       <div class="table-wrapper">
         <table id="ingredients_table" class="generic-table">
@@ -462,10 +462,15 @@
       showOverlay("stockitem");
     }
     function calculateAvailableStock(ingredients){
-      var minCount = 99 // FIXME: max?
+      var minCount = -1 // FIXME: max?
       for (const [id, amount] of Object.entries(ingredients || {})) {
-        minCount = Math.min(Math.floor(DB.data.ingredients[id].amount/amount), minCount)
+        if (minCount === -1){
+          minCount = Math.floor(DB.data.ingredients[id].amount/amount)
+        }else{
+          minCount = Math.min(Math.floor(DB.data.ingredients[id].amount/amount), minCount)
+        }
       }
+      if (minCount === -1) minCount = 0;
       return minCount;
     }
     function deleteStockItem(id){
@@ -496,9 +501,13 @@
             <span class="small-button delete-button">🗑️</span>
           </td>
         `;
-        row.querySelector(".stock-selector").value = id;
+        const radioButton = row.querySelector(".stock-selector");
+        radioButton.value = id;
         row.addEventListener("click", () => {
           row.querySelector(".stock-selector").checked = true;
+          document.getElementById("edit-stock-id").value = id;
+          document.getElementById("edit-stock-name").value = stockitem.name;
+          document.getElementById("edit-stock-price").value = stockitem.price;
         })
         /*
         row.querySelector(".edit-button").addEventListener("click", () => {
@@ -509,14 +518,20 @@
             stockitem.ingredients
           );
         });
+        */
 
         row.querySelector(".delete-button").addEventListener("click", () => {
-          deleteStockItem(id)
+          deleteStockItem(id);
+          updateStock
         })
-        */
 
         stockContent.appendChild(row);
       }
+    }
+    function unselectStock(){
+      document.getElementById("edit-stock-name").value = "";
+      document.getElementById("edit-stock-price").value = 0;
+      updateStock();
     }
     
     // SECTION: INGREDIENTS
@@ -665,7 +680,10 @@
 
 
     // STOCK HANDLERS
-    document.getElementById("stock_additem").addEventListener("click", () => {showStockItemOverlay();});
+    // document.getElementById("stock_additem").addEventListener("click", () => {showStockItemOverlay();});
+    document.getElementById("edit-stock-id").addEventListener("change", () => {
+      console.log("hello world");
+    });
 
     // INVENTORY HANDLERS
 
