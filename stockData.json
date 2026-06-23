@@ -18,23 +18,17 @@
       "amount": 1000,
       "lastRestock": "2026-06-22T00:00:00.000Z"
     },
-    "[object PointerEvent]": {
-      "name": "lorem",
-      "unit": "g",
-      "amount": 100,
-      "lastRestock": "2026-06-22T23:28:18.530Z"
-    },
-    "dwa_1782171059357": {
-      "name": "dwa",
-      "unit": "gr",
-      "amount": 432,
-      "lastRestock": "2026-06-22T23:30:59.357Z"
-    },
     "haha_1782171081246": {
-      "name": "haha",
+      "name": "Hazelnut Powder",
       "unit": "g",
-      "amount": 345,
-      "lastRestock": "2026-06-22T23:31:21.246Z"
+      "amount": 900,
+      "lastRestock": "2026-06-22T00:00:00.000Z"
+    },
+    "disadeco_robusta_1782175316995": {
+      "name": "Disadeco Robusta",
+      "unit": "g",
+      "amount": 2345,
+      "lastRestock": "2026-06-23T00:00:00.000Z"
     }
   },
   "menu": {

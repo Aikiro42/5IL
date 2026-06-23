@@ -348,21 +348,22 @@
       get menu() {return this.data.menu || {}}
       get transactions() {return this.data.transactions || []}
 
-      constructor(jsonFile) {
+      constructor(jsonFile, callback) {
         if (!jsonFile) {
           this.data = this.default
         }else{
-          this.import(jsonFile);
+          this.import(jsonFile, callback);
         }
       }
 
-      import(jsonFile) {
+      import(jsonFile, callback) {
         const reader = new FileReader();
-        reader.onload = function (e) {
+        reader.onload = (e) => {
           try {
             this.data = JSON.parse(e.target.result);
             this.save()
             console.log("Data loaded successfully.");
+            if (callback) callback();
           } catch (err) {
             console.error("Invalid JSON file:", err);
           }
@@ -470,12 +471,12 @@
     function calculateAvailableStock(ingredients){
       var minCount = 99 // FIXME: max?
       for (const [id, amount] of Object.entries(ingredients || {})) {
-        minCount = Math.min(Math.floor(DB.ingredients[id].amount/amount), minCount)
+        minCount = Math.min(Math.floor(DB.data.ingredients[id].amount/amount), minCount)
       }
       return minCount;
     }
     function deleteStockItem(id){
-        delete DB.menu[id];
+        delete DB.data.menu[id];
         DB.save();
         updateInventory(); // Refresh the table
     }
@@ -490,7 +491,7 @@
       // Load ingredients
       
       // Add rows
-      for (const [id, stockitem] of Object.entries(DB.menu)) {
+      for (const [id, stockitem] of Object.entries(DB.data.menu)) {
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -560,7 +561,7 @@
       // obtain id
       const id = ingredient_id || `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
         
-      DB.ingredients[id] = ingredient;
+      DB.data.ingredients[id] = ingredient;
       DB.save();
 
       updateInventory();
@@ -568,12 +569,15 @@
     }
 
     function deleteIngredient(id){
-        delete DB.ingredients[id];
+        delete DB.data.ingredients[id];
         DB.save();
         updateInventory(); // Refresh the table
     }
 
     function updateInventory() {
+
+      console.log("Updating Inventory...");
+
       const ingredientsContent = document.getElementById("ingredients_table_content");
 
       if (!ingredientsContent) return;
@@ -582,7 +586,7 @@
       ingredientsContent.innerHTML = "";
 
       // Add rows
-      for (const [id, ingredient] of Object.entries(DB.ingredients)) {
+      for (const [id, ingredient] of Object.entries(DB.data.ingredients)) {
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -654,9 +658,10 @@
     // import inventory
     document.getElementById("import-inventory").addEventListener("change", function () {
       if (this.files.length > 0) {
-        DB.import(this.files[0])
-        updateInventory();
-        updateStock();
+        DB.import(this.files[0], () => {
+          updateInventory();
+          updateStock();
+        });
       }
     });
 
