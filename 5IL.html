@@ -177,51 +177,6 @@
 
   </aside>
 
-  <div id="overlay" class="hidden">
-
-    <!-- OVERLAY: Stock -->
-    <div id="overlay-stockitem" class="overlay hidden"> 
-      <div class="popup">
-
-      </div>
-    </div>
-
-    <!-- OVERLAY: Ingredients -->
-    <div id="overlay-ingredients" class="overlay hidden">
-      <div class="popup">
-        <h1>Edit Ingredient</h1>
-
-        <input type="hidden" id="edit-ingredient-id">
-
-        <div class="form-group">
-          <label for="edit-ingredient-name">Ingredient Name</label>
-          <input type="text" id="edit-ingredient-name" placeholder="Milk">
-        </div>
-
-        <div class="form-group">
-          <label for="edit-ingredient-unit">Unit</label>
-          <input type="text" id="edit-ingredient-unit" placeholder="mL">
-        </div>
-
-        <div class="form-group">
-          <label for="edit-ingredient-amount">Amount</label>
-          <input type="number" id="edit-ingredient-amount" min="0" step="0.01">
-        </div>
-
-        <div class="form-group">
-          <label for="edit-ingredient-restock">Last Restock</label>
-          <input type="date" id="edit-ingredient-restock">
-        </div>
-
-        <div class="button-row">
-          <button id="ingredient-save">💾 Save</button>
-          <button id="ingredient-cancel" onclick="hideOverlay()">❌ Cancel</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
   <main class="content" id="content">
     <div class="data-section">
       <span id="refresh-inventory" class="data-button refresh-button">
@@ -492,50 +447,10 @@
       "orders"
     ];
 
-    const overlays = [
-      "ingredients",
-      "stockitem"
-    ]
-
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleBtn");
     const content = document.getElementById("content")
-    const overlay = document.getElementById("overlay")
 
-    // GENERAL FUNCTIONS
-    function showOverlay(overlayName){
-      // show the overlay
-      overlay.classList.remove("hidden");
-      
-      // hide all overlays
-      overlays.forEach((e)=>{
-        const overlayCategory = document.getElementById("overlay-" + e)
-        if (overlayCategory) {
-          overlayCategory.classList.add("hidden");
-        }
-      })
-
-      // show the selected overlay
-      const selectedOverlayCategory = document.getElementById("overlay-" + overlayName)
-      if (selectedOverlayCategory) {
-        console.log(overlayName)
-        selectedOverlayCategory.classList.remove("hidden");
-      }
-    }
-
-    function hideOverlay() {
-      overlay.classList.add("hidden");
-    }
-
-    // SECTION: STOCK
-    function showStockItemOverlay(id, name, price, ingredients){
-      document.getElementById("edit-stock-id").value = id ?? "";
-      document.getElementById("edit-stock-name").value = name ?? "";
-      document.getElementById("edit-stock-price").value = price ?? 0;
-      document.getElementById("edit-stock-ingredients").value = ingredients ?? {};
-      // TODO: render stock ingredients table
-      showOverlay("stockitem");
-    }
     function calculateAvailableStock(ingredients){
       var minCount = -1;
       for (const [id, amount] of Object.entries(ingredients ?? {})) {
@@ -980,14 +895,11 @@
     // export inventory
     document.getElementById("export-inventory").addEventListener("click", () => DB.export('inventory', true));
 
-    // ingredient overlay - add item
+    // add inventory item
     document.getElementById("ingredients_additem").addEventListener("click", () => {
       document.getElementById("ingredients_table_content").appendChild(generateIngredientRow());
     });
-    // ingredient overlay - cancel
-    document.getElementById("ingredient-save").addEventListener("click", saveIngredient);
-    document.getElementById("ingredient-cancel").addEventListener("click", hideOverlay);
-
+    
     // init
     DB.load();
     updateInventory();
