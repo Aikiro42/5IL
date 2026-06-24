@@ -387,7 +387,7 @@
       export(filename, doTimestamp) {
         // Build export object
         this.save()
-        const exportData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || this.default;
+        const exportData = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? this.default;
         const jsonString = JSON.stringify(exportData, null, 2);
 
         // Create downloadable file
@@ -421,7 +421,7 @@
       }
 
       load() {
-        const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) || this.default;
+        const appdata = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? this.default;
         this.data = appdata
       }
 
@@ -474,16 +474,16 @@
 
     // SECTION: STOCK
     function showStockItemOverlay(id, name, price, ingredients){
-      document.getElementById("edit-stock-id").value = id || "";
-      document.getElementById("edit-stock-name").value = name || "";
-      document.getElementById("edit-stock-price").value = price || 0;
-      document.getElementById("edit-stock-ingredients").value = ingredients || {};
+      document.getElementById("edit-stock-id").value = id ?? "";
+      document.getElementById("edit-stock-name").value = name ?? "";
+      document.getElementById("edit-stock-price").value = price ?? 0;
+      document.getElementById("edit-stock-ingredients").value = ingredients ?? {};
       // TODO: render stock ingredients table
       showOverlay("stockitem");
     }
     function calculateAvailableStock(ingredients){
       var minCount = -1;
-      for (const [id, amount] of Object.entries(ingredients || {})) {
+      for (const [id, amount] of Object.entries(ingredients ?? {})) {
         if (minCount === -1){
           minCount = Math.floor(DB.data.ingredients[id].amount/amount)
         }else{
@@ -572,7 +572,7 @@
     }
     function generateStockIngredientRow(id, name, price, ingredientId, amount){
       const ingredientRow = document.createElement("tr");
-      amount = amount || 0;
+      amount = amount ?? 0;
       if (!ingredientId) {
         ingredientRow.innerHTML = `
           <td class="edit-stock-ingredient-name"></td>
@@ -613,7 +613,7 @@
 
         // remove ingredient from json stored in hidden element
         if (ingredientId) {
-          const tempIngredients = JSON.parse(document.getElementById("edit-stock-ingredients").value || "{}");
+          const tempIngredients = JSON.parse(document.getElementById("edit-stock-ingredients").value ?? "{}");
           delete tempIngredients[ingredientId];
           document.getElementById("edit-stock-ingredients").value = JSON.stringify(tempIngredients);
         }
@@ -634,17 +634,17 @@
             <input type="text" id="edit-stock-ingredient-amount" />
           `;
         }
-        document.getElementById("edit-stock-ingredient-amount").value = amount || 0;
+        document.getElementById("edit-stock-ingredient-amount").value = amount ?? 0;
       });
       
       // to save ingredient
       saveIngredientDOMElement.addEventListener("click", () => {
 
         const newIngredientId = document.getElementById("edit-stock-ingredient-name").value
-        const newAmount = Number(document.getElementById("edit-stock-ingredient-amount").value || "0") || "0";
+        const newAmount = Number(document.getElementById("edit-stock-ingredient-amount").value ?? "0");
 
         // save ingredient to json stored in hidden element
-        const tempIngredients = JSON.parse(document.getElementById("edit-stock-ingredients").value || "{}");
+        const tempIngredients = JSON.parse(document.getElementById("edit-stock-ingredients").value ?? "{}");
         if (newIngredientId in tempIngredients ) {
           tempIngredients[newIngredientId] += newAmount
         }else{
@@ -700,10 +700,10 @@
 
     function showIngredientOverlay(id, name, unit, amount, lastRestock) {
       // Populate form
-      document.getElementById("edit-ingredient-id").value = id || "";
-      document.getElementById("edit-ingredient-name").value = name || "";
-      document.getElementById("edit-ingredient-unit").value = unit || "";
-      document.getElementById("edit-ingredient-amount").value = amount || 0;
+      document.getElementById("edit-ingredient-id").value = id ?? "";
+      document.getElementById("edit-ingredient-name").value = name ?? "";
+      document.getElementById("edit-ingredient-unit").value = unit ?? "";
+      document.getElementById("edit-ingredient-amount").value = amount ?? 0;
 
       // Convert ISO date to YYYY-MM-DD for <input type="date">
       if (lastRestock){
@@ -717,9 +717,9 @@
 
     function saveIngredient() {
       const ingredient_id = document.getElementById("edit-ingredient-id").value
-      const ingredient_name = document.getElementById("edit-ingredient-name").value || "Unknown Ingredient";
-      const ingredient_unit = document.getElementById("edit-ingredient-unit").value || "U";
-      const ingredient_amount = Number(document.getElementById("edit-ingredient-amount").value) || 0;
+      const ingredient_name = document.getElementById("edit-ingredient-name").value ?? "Unknown Ingredient";
+      const ingredient_unit = document.getElementById("edit-ingredient-unit").value ?? "U";
+      const ingredient_amount = Number(document.getElementById("edit-ingredient-amount").value ?? "0");
       
         // date input gives "" when empty, so normalize first
       const restockInput = document.getElementById("edit-ingredient-restock").value;
@@ -734,7 +734,7 @@
       };
 
       // obtain id
-      const id = ingredient_id || `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
+      const id = ingredient_id ?? `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
         
       DB.data.ingredients[id] = ingredient;
       DB.save();
@@ -901,22 +901,22 @@
     // STOCK HANDLERS
     document.getElementById("edit-stock-add-ingredient").addEventListener("click", () => {
       const editStockIngredientTableBody = document.getElementById("edit-stock-ingredients-tbody");
-      const editStockId = document.getElementById("edit-stock-id").value || "";
-      const editStockName = document.getElementById("edit-stock-name").value || "";
-      const editStockPrice = Number(document.getElementById("edit-stock-price").value || "0");
+      const editStockId = document.getElementById("edit-stock-id").value ?? "";
+      const editStockName = document.getElementById("edit-stock-name").value ?? "";
+      const editStockPrice = Number(document.getElementById("edit-stock-price").value ?? "0");
       editStockIngredientTableBody.appendChild(generateStockIngredientRow(editStockId, editStockName, editStockPrice));
     })
     document.getElementById("stock-add").addEventListener("click", () => {
-      name = document.getElementById("edit-stock-name").value || "Item";
-      price = Number(document.getElementById("edit-stock-price").value || "0") || 0;
+      name = document.getElementById("edit-stock-name").value ?? "Item";
+      price = Number(document.getElementById("edit-stock-price").value ?? "0");
       id = `${name}_${Date.now()}`;
       updateStockItem(id, name, price, {});
     });
     document.getElementById("stock-save").addEventListener("click", () => {
-      name = document.getElementById("edit-stock-name").value || "Item";
-      price = Number(document.getElementById("edit-stock-price").value || "0") || 0;
-      id = document.getElementById("edit-stock-id").value || `${name}_${Date.now()}`;
-      ingredients = JSON.parse(document.getElementById("edit-stock-ingredients").value || "{}");
+      name = document.getElementById("edit-stock-name").value ?? "Item";
+      price = Number(document.getElementById("edit-stock-price").value ?? "0");
+      id = document.getElementById("edit-stock-id").value ?? `${name}_${Date.now()}`;
+      ingredients = JSON.parse(document.getElementById("edit-stock-ingredients").value ?? "{}");
       updateStockItem(id, name, price, ingredients);
     });
 
