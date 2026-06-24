@@ -114,10 +114,11 @@
 
     /* SECTION: Ingredients */
     #ingredients_table td{ padding: 0; }
-    #ingredients_table td:nth-child(1){ width: 90%; }
+    #ingredients_table td:nth-child(1){ width: 80%; }
     #ingredients_table td:nth-child(5){ width: 10%; }
     #ingredients_table #ingredients_additem { padding: 12px 16px;}
-    #ingredients_table .edit-ingredient { padding: 12px 16px; border-radius: 10px; border: none; outline: none; font: inherit; color: inherit; background: transparent; }
+    #ingredients_table .edit-ingredient { transition-duration: 0.3s; padding: 12px 16px; width: 100%; border: none; outline: none; font: inherit; color: inherit; background: transparent; }
+    #ingredients_table .edit-ingredient:focus { background: #bcd3ff;}
     
     /* SECTION: Stock */
     #stock-content-wrapper {display: flex; gap: 3%; margin-top: 3%;}
