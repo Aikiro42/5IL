@@ -451,18 +451,29 @@
     const toggleBtn = document.getElementById("toggleBtn");
     const content = document.getElementById("content")
 
-    function calculateAvailableStock(ingredients){
+
+    /* SECTION: Stock */
+
+    function calculateAvailableStock(id){
+      if (!id) return 0;
+      
+      const stockItem = DB.data.menu?.[id]
+      if (!stockItem) return 0;
+
       var minCount = -1;
-      for (const [id, amount] of Object.entries(ingredients ?? {})) {
+      for (const [id, amount] of Object.entries(stockItem.ingredients ?? {})) {
         if (minCount === -1){
           minCount = Math.floor(DB.data.ingredients[id].amount/amount)
         }else{
           minCount = Math.min(Math.floor(DB.data.ingredients[id].amount/amount), minCount)
         }
       }
+
       if (minCount === -1) minCount = 0;
+      
       return minCount;
     }
+    
     function generateIngredientDropdown(id, selectedIngredientId){
       const dropdownDOMElement = document.createElement("select");
       dropdownDOMElement.name = id
