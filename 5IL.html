@@ -7,12 +7,36 @@
   <link rel="icon" href="./loss.jpg"/>
   <style>
 
+    :root{
+      --primary-background-color: #d5d5d5;
+      --primary-color: white;
+      --primary-header-color: black;
+      --primary-subheader-color: black;
+      --primary-font-color: black;
+      
+      --secondary-background-color: white;
+      --secondary-color: #1f2d3a;
+      --secondary-header-color: white;
+      --secondary-subheader-color: black;
+      --secondary-font-color: white;
+
+      --tertiary-background-color: yellow;
+      --tertiary-color: blue;
+      --tertiary-header-color: blue;
+      --tertiary-subheader-color: blue;
+      --tertiary-font-color: white;
+    }
+
     /* SECTION: Global CSS */
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    * {
+      margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif;
+      transition: all 0.1s ease;
+    }
     .small-button{ cursor: pointer; padding: 5px; border-radius: 2px; }
     .small-button:hover { background: #d5d5d5; }
     .small-button:active { transform: scale(0.98); }
-    
+    .blended-input{ font: inherit; background: transparent; border: none; }
+
     body { display: flex; height: 100vh; overflow: hidden; }
     
     /* SECTION: Sidebar */
@@ -101,15 +125,15 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
     /* Header styling */
-    .generic-table  thead { background-color: #2c3e50; color: #ffffff; }
-    .generic-table  th { text-align: left; padding: 12px 16px; font-weight: 600; letter-spacing: 0.3px; }
+    .generic-table thead { background-color: #2c3e50; color: #ffffff; }
+    .generic-table th { text-align: left; padding: 12px 16px; font-weight: 600; letter-spacing: 0.3px; }
     /* Body cells */
-    .generic-table  td { padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #333; }
-    .generic-table  tbody tr:nth-child(even) { background-color: #f8f9fa; }  /* Zebra striping for readability */
+    .generic-table td { padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #333; }
+    .generic-table tbody tr:nth-child(even) { background-color: #f8f9fa; }  /* Zebra striping for readability */
     /* Hover effect */
-    .generic-table  tbody tr:hover { background-color: #eef3f7; }
+    .generic-table tbody tr:hover { background-color: #eef3f7; }
     /* Make sure it adapts nicely in dynamic layouts */
-    .generic-table  { max-width: 100%; display: table; }
+    .generic-table { max-width: 100%; display: table; }
     .generic-table .generic-additem:hover{ cursor: pointer; }
     .generic-table .generic-additem:active{ cursor: pointer; background-color: #c1c4c7; }
     .table-wrapper { width: 100%; overflow-x: auto; }
@@ -123,23 +147,22 @@
     #ingredients_table .edit-ingredient:focus { background: #bcd3ff;}
     
     /* SECTION: Stock */
-    #stock-content-wrapper {display: flex; gap: 3%; margin-top: 3%;}
-    #edit-stock-wrapper {
-      display: flex; flex-direction: column; gap: 10px;
-      background: white; box-shadow: 0 8px 32px rgba(0,0,0,.2); border-radius: 16px; width: max(500px, 40vw); padding: 3%;
+    #stock-content-wrapper { display: flex; gap: 3%; }
+    #content-stock-item h1,h2 {margin-bottom: 1%;}
+    #content-stock-item h1 {line-height: 50px;}
+    #content-stock-item h1 * {vertical-align: middle;}
+    #stock-item-back {
+      background: var(--secondary-color); color: var(--secondary-header-color);
+      width: 50px; height: 50px; line-height: 50px; margin-right: 1%; border-radius: 25px;
+      font-size: 20px;
     }
-    #edit-stock-wrapper .form-group { display: flex; flex-direction: column; gap: 5px; }
-    #edit-stock-wrapper .form-group label { font-weight: bold; }
-    #edit-stock-wrapper .button-row { display: flex; justify-content: space-between; gap: 10px; }
-    #edit-stock-wrapper .button-row button { flex: 1; padding: 5px; font-size: 1rem; }
-    
-    #edit-stock-wrapper table{ box-shadow: 0 8px 16px rgba(0,0,0,.2); margin: 3% 0; }
-    #edit-stock-wrapper table .edit-stock-ingredient-name{ width: 40%; }
-    #edit-stock-wrapper table .edit-stock-ingredient-amount{ width: 20%; }
-    #edit-stock-wrapper table select{ width: 100%;}
-    #edit-stock-ingredient-amount { width: 75%; }
-    #edit-stock-wrapper .edit-stock-textinput{ padding: 10px; font-size: 1rem; border: 1px solid gray; border-radius: 5px;}
-  
+    #stock-item-back:hover {
+      background:#35536f;
+      cursor: pointer;
+    }
+    #stock-item-back:active{
+      transform: scale(0.95);
+    }
 
     /* DYNAMIC CSS */
     .hidden { display: none !important;  }
@@ -192,16 +215,14 @@
       </span>
     </div>
     
-    <!--CONTENT: Stock-->
+    <!-- CONTENT: Stock-->
     <div id="content-stock">
       <h1 class="content-title">Stock</h1>
       <div id="stock-content-wrapper">
-        <!--Subcontent: Stock List-->
         <div id="stock-table-wrapper" class="table-wrapper">
           <table id="stock_table" class="generic-table">
             <thead>
               <tr>
-                <th></th>
                 <th>Menu Item</th>
                 <th>Price</th>
                 <th>Units Available</th>
@@ -214,8 +235,29 @@
         </div>
       </div>
     </div>
+
+    <!-- CONTENT: Stock (Item) -->
+    <div id="content-stock-item">  
+      <h1><button id="stock-item-back" class="blended-input" onclick="showContent('stock')">◄</button>✒️<input type="text" name="edit-stock-item-name" placeholder="Spanish Latte" id="edit-stock-item-name" class="blended-input" /></h1>
+      <h2>Price:✒️ <input type="number" name="edit-stock-item-price" placeholder="199.99" id="edit-stock-item-price" class="blended-input" /> </h2>
+      <h2>Ingredients</h2>
+      <table class="generic-table">
+        <thead>
+          <tr>
+            <th>Ingredient</th>
+            <th>Amount</th>
+            <th></th> <!-- button column -->
+          </tr>
+        </thead>
+        <tbody id="stock-item-ingredients-table-body">
+        </tbody>
+        <tr>
+          <td class="generic-additem" colspan="4">➕ Add Ingredient</td>
+        </tr>
+      </table>
+    </div>
     
-    <!--CONTENT: Ingredients-->
+    <!-- CONTENT: Ingredients-->
     <div id="content-ingredients">
       <h1 class="content-title">Ingredients</h1>
 
@@ -380,17 +422,33 @@
     const DB = new AppData()
 
     // CONSTANTS
-    const categories = [
+    const contentNames = [
       "dashboard",
       "ingredients",
       "stock",
-      "orders"
+      "orders",
+      "stock-item"
     ];
 
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleBtn");
     const content = document.getElementById("content")
 
+    // ____________________________________________________________________________________________________________________
+    // SECTION: GENERAL
+    // ____________________________________________________________________________________________________________________
+    function showContent(contentName){
+      contentNames.forEach(function(f){
+        const contentElement = document.getElementById("content-" + f)
+        if (contentElement){
+          if (f === contentName) {
+            contentElement.classList.remove("hidden");
+          }else{
+            contentElement.classList.add("hidden");
+          }
+        }
+      });
+    }
 
     // ____________________________________________________________________________________________________________________
     // SECTION: STOCK
@@ -416,10 +474,10 @@
       return minCount;
     }
 
-    function generateIngredientDropdown(id, selectedIngredientId){
+    function generateIngredientDropdown(dropdownId, selectedIngredientId){
       const dropdownDOMElement = document.createElement("select");
-      dropdownDOMElement.name = id
-      dropdownDOMElement.id = id
+      dropdownDOMElement.name = dropdownId
+      dropdownDOMElement.id = dropdownId
       for (const [id, ingredient] of Object.entries(DB.data.ingredients)) {
         const ingredientItem = document.createElement("option")
         ingredientItem.value = id;
@@ -448,6 +506,11 @@
         updateStock(); // Refresh the table
     }
 
+    function resetStockItemUI(){
+      document.getElementById("edit-stock-item-name").value = "";
+      document.getElementById("edit-stock-item-price").value = 0;
+    }
+
     function updateStock(){
       const stockContent = document.getElementById("stock_table_content");
 
@@ -463,31 +526,21 @@
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td><input type="radio" class="stock-selector" name="edit-stock-selected"/></td>
           <td>${stockitem.name}</td>
           <td>${stockitem.price}</td>
           <td>${calculateAvailableStock(stockitem.ingredients)}</td>
           <td>
+            <span class="small-button edit-button">✏️</span>
             <span class="small-button delete-button">🗑️</span>
           </td>
         `;
-        const radioButton = row.querySelector(".stock-selector");
-        radioButton.value = id;
-        row.addEventListener("click", () => {
-          row.querySelector(".stock-selector").checked = true;
-          updateEditStockUI(id, stockitem.name, stockitem.price, stockitem.ingredients)
-        })
-        /*
+        
         row.querySelector(".edit-button").addEventListener("click", () => {
-          showStockItemOverlay(
-            id,
-            stockitem.name,
-            stockitem.price,
-            stockitem.ingredients
-          );
-        });
-        */
-
+          resetStockItemUI();
+          showContent("stock-item");
+          updateStock();
+        })
+        
         row.querySelector(".delete-button").addEventListener("click", () => {
           deleteStockItem(id);
           updateStock();
@@ -776,7 +829,7 @@
       }
     }
 
-    // HANDLERS
+    // SECTION: HANDLERS
 
     // navbar burger collapser
     toggleBtn.addEventListener("click", () => {
@@ -787,20 +840,11 @@
     for each category item, add a handler that hides all other content- divs
     and shows that respective nav-'s div
     */
-    categories.forEach(function(e){
+    contentNames.forEach(function(e){
       const domElement = document.getElementById("nav-" + e)
       if (domElement) {
         domElement.addEventListener("click", () => {
-          categories.forEach(function(f){
-            const contentElement = document.getElementById("content-" + f)
-            if (contentElement){
-              contentElement.classList.add("hidden");
-            }
-          });
-          const selectedContentElement = document.getElementById("content-" + e)
-          if (selectedContentElement){
-            selectedContentElement.classList.remove("hidden");
-          }
+          showContent(e);
         });
       }
     });
@@ -861,7 +905,7 @@
     DB.load();
     updateInventory();
     updateStock();
-    document.getElementById("nav-stock").click()
+    showContent("stock-item");
 
   </script>
 
