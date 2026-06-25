@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>5IL - Localized Ordering System</title>
+  <link rel="icon" href="./loss.jpg"/>
   <style>
 
     /* SECTION: Global CSS */
@@ -31,6 +32,7 @@
     /* SECTION: Main content */
 
     .content { flex: 1; padding: 30px; background: #f4f4f4; overflow-y: auto; min-width: 800px;}
+    .content .content-title { margin-bottom: 1%; }
     #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
 
     /* SECTION: Overlay */
@@ -193,7 +195,7 @@
     
     <!--CONTENT: Stock-->
     <div id="content-stock">
-      <h1>Stock</h1>
+      <h1 class="content-title">Stock</h1>
       <div id="stock-content-wrapper">
 
         <!--Subcontent: Stock List-->
@@ -277,7 +279,7 @@
     
     <!--CONTENT: Ingredients-->
     <div id="content-ingredients">
-      <h1>Ingredients</h1>
+      <h1 class="content-title">Ingredients</h1>
 
       <div class="table-wrapper">
         <table id="ingredients_table" class="generic-table">
@@ -473,7 +475,7 @@
       
       return minCount;
     }
-    
+
     function generateIngredientDropdown(id, selectedIngredientId){
       const dropdownDOMElement = document.createElement("select");
       dropdownDOMElement.name = id
@@ -859,7 +861,6 @@
       }
     });
 
-    document.getElementById("nav-ingredients").click()
     // document.getElementById("nav-" + categories[0]).click()
 
     // refresh inventory
@@ -914,7 +915,8 @@
     // init
     DB.load();
     updateInventory();
-    // updateStock();
+    updateStock();
+    document.getElementById("nav-stock").click()
 
   </script>
 
