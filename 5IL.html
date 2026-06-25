@@ -140,7 +140,7 @@
 
     /* SECTION: Ingredients */
     #ingredients_table td{ padding: 0; }
-    #ingredients_table td:nth-child(1){ width: 80%; }
+    #ingredients_table td:nth-child(1){ width: 60%; }
     #ingredients_table td:nth-child(5){ width: 10%; }
     #ingredients_table #ingredients_additem { padding: 12px 16px;}
     #ingredients_table .edit-ingredient { transition-duration: 0.3s; padding: 12px 16px; width: 100%; border: none; outline: none; font: inherit; color: inherit; background: transparent; }
@@ -228,6 +228,9 @@
             </thead>
             <tbody id="stock_table_content">
             </tbody>
+            <tr>
+              <td class="generic-additem" id="add-stock-item" colspan="4">➕ Add Item</td>
+            </tr>
           </table>
         </div>
       </div>
@@ -238,7 +241,7 @@
       <input type="hidden" id="edit-stock-item-id" name="edit-stock-item-id" />
       <input type="hidden" id="edit-stock-item-ingredients" name="edit-stock-item-ingredients" />
       <h1><button id="stock-item-back" class="blended-input" onclick="showContent('stock')">◄</button>✒️<input type="text" name="edit-stock-item-name" placeholder="Spanish Latte" id="edit-stock-item-name" class="blended-input" /></h1>
-      <h2>Price:✒️ <input type="number" name="edit-stock-item-price" placeholder="199.99" id="edit-stock-item-price" class="blended-input" /> </h2>
+      <h2>Price:✒️ <input type="number" name="edit-stock-item-price" placeholder="199.99" id="edit-stock-item-price" class="blended-input" /></h2>
       <h2>Ingredients</h2>
       <table class="generic-table">
         <thead>
@@ -274,8 +277,8 @@
           <tbody id="ingredients_table_content">
           </tbody>
           <tr>
-            <td id="ingredients_additem" class="generic-additem" colspan="5">
-              ➕ Add item
+            <td id="ingredients_additem" class="generic-additem" colspan="5", onclick="generateIngredientRow()">
+              ➕ Add Ingredient
             </td>
           </tr>
         </table>
@@ -449,6 +452,16 @@
       });
     }
 
+    function generateId(prefix){
+      const randomString = crypto.randomUUID
+        ? `${crypto.randomUUID()}`
+        : `${Date.now().toString(36) + Math.random().toString(36).slice(2)}`;
+      
+      return prefix
+        ? `${prefix.trim().replace(/\s+/g, "_")}_${randomString}`
+        : randomString;
+    }
+
     // ____________________________________________________________________________________________________________________
     // SECTION: STOCK
     // ____________________________________________________________________________________________________________________
@@ -512,21 +525,69 @@
       const ingredientUnit = ingredientId ? DB.data.ingredients[ingredientId].unit : "";
       ingredientRow.innerHTML = `
         <td></td>
-        <td><input type="number" class="edit-stock-item-ingredient-input blended-input" value="${ingredientAmount}"/> ${ingredientUnit}</td>
+        <td><input type="number" class="edit-stock-item-ingredient-input blended-input edit-stock-item-ingredient-amount" value="${ingredientAmount}"/> ${ingredientUnit}</td>
         <td>
           <span class="small-button save-button">💾</span>
           <span class="small-button delete-button">🗑️</span>
         </td>
       `
-      ingredientRow.querySelector("td:nth-child(1)").appendChild(generateIngredientDropdown(["edit-stock-item-ingredient-input", "blended-input"],ingredientId));
+      // add ingredient selector
+      ingredientRow.querySelector("td:nth-child(1)").appendChild(generateIngredientDropdown(["edit-stock-item-ingredient-input", "edit-stock-item-ingredient-id", "blended-input"],ingredientId));      
+
+      // get fields and buttons
+      const ingredientIdInput = ingredientRow.querySelector(".edit-stock-item-ingredient-id");
+      const ingredientAmountInput = ingredientRow.querySelector(".edit-stock-item-ingredient-amount");
+      const saveButton = ingredientRow.querySelector(".save-button");
+      
+      // setup save button
+      if (ingredientId) saveButton.classList.add("hidden");
+      
+      // show save button on field change
+      for (const inputField of ingredientRow.querySelectorAll(".edit-stock-item-ingredient-input")){
+        inputField.addEventListener("change", () => {
+          saveButton.classList.remove("hidden");
+        })
+      }
+
+      // on save, add ingredient to list or edit ingredient
+      saveButton.addEventListener("click", () => {
+        const stockItemId = document.getElementById("edit-stock-item-id").value;
+        const newIngredientId = ingredientIdInput.value;
+        if (!newIngredientId) ingredientRow.remove();
+        const newIngredientAmount = Number(ingredientAmountInput.value ?? "0");
+        // if ingredientId already in ingredients
+        if (newIngredientId in DB.data.menu[stockItemId].ingredients){
+          DB.data.menu[stockItemId].ingredients[newIngredientId].amount += newIngredientAmount;
+          ingredientRow.remove();
+        }else{
+          DB.data.menu[stockItemId].ingredients[newIngredientId] = newIngredientAmount;
+        }
+        DB.save();
+        updateStockItemUI(stockItemId);
+      });
       stockItemIngredientsTable.appendChild(ingredientRow);
     }
 
-    function updateStockItemUI(id, name, price, ingredients){
-      document.getElementById("edit-stock-item-id").value = id ?? Date.now();
+    function updateStockItemUI(stockItemId){
+      resetStockItemUI();
+      stockItemId ??= generateId();
+      document.getElementById("edit-stock-item-id").value = stockItemId;
+      DB.temp = structuredClone(DB.data.menu?.[stockItemId] ?? {})
+      const name = stockItemId ? DB.data.menu[stockItemId].name : "";
+      const price = stockItemId ? DB.data.menu[stockItemId].price : 0;
+      const ingredients = stockItemId ? DB.data.menu[stockItemId].ingredients : {};
+
+      /*
+      DB.temp = {
+        name: name,
+        price: price,
+        ingredients: ingredients
+      }
+      */
+
       document.getElementById("edit-stock-item-ingredients").value = JSON.stringify(ingredients ?? {});
       document.getElementById("edit-stock-item-name").value = name ?? "";
-      document.getElementById("edit-stock-item-price").value = name ?? "";
+      document.getElementById("edit-stock-item-price").value = price ?? 0;
       const ingredientsTable = document.getElementById("stock-item-ingredients-table-body");
       ingredientsTable.innerHTML = "";
       for ( const [ingredientId, ingredientAmount] of Object.entries(ingredients) ) {
@@ -539,6 +600,7 @@
       document.getElementById("edit-stock-item-ingredients").value = "{}";
       document.getElementById("edit-stock-item-name").value = "";
       document.getElementById("edit-stock-item-price").value = 0;
+      document.getElementById("stock-item-ingredients-table-body").innerHTML = "";
     }
 
     function updateStock(){
@@ -580,73 +642,27 @@
         stockContent.appendChild(row);
       }
     }
-    function updateEditStockUI(id, name, price, ingredients){
-      document.getElementById("edit-stock-id").value = id;
-      document.getElementById("edit-stock-name").value = name;
-      document.getElementById("edit-stock-price").value = price;
-      
-      // update ingredients
-      document.getElementById("edit-stock-ingredients").value = JSON.stringify(ingredients);
-      loadStockIngredientsTable(id, name, price, ingredients);
-
-    }
-    function deselectStock(){
-      document.getElementById("edit-stock-id").value = "";
-      document.getElementById("edit-stock-name").value = "";
-      document.getElementById("edit-stock-price").value = 0;
-      document.getElementById("edit-stock-ingredients").value = "{}";
-      document.getElementById("edit-stock-ingredients-tbody").innerHTML = "";
-      updateStock();
-    }
     
     // ____________________________________________________________________________________________________________________
     // SECTION: INGREDIENTS
     // ____________________________________________________________________________________________________________________
-    function showIngredientOverlay(id, name, unit, amount, lastRestock) {
-      // Populate form
-      document.getElementById("edit-ingredient-id").value = id ?? "";
-      document.getElementById("edit-ingredient-name").value = name ?? "";
-      document.getElementById("edit-ingredient-unit").value = unit ?? "";
-      document.getElementById("edit-ingredient-amount").value = amount ?? 0;
 
-      // Convert ISO date to YYYY-MM-DD for <input type="date">
-      if (lastRestock){
-        document.getElementById("edit-ingredient-restock").value =
-          new Date(lastRestock).toISOString().split("T")[0];
-      }
+    function saveIngredient(id, name, unit, amount, lastRestock) {
+      const newId = id || generateId(name?.toLowerCase());
+      const existing = DB.data.ingredients?.[newId] ?? {};
 
-      // Show overlay
-      showOverlay("ingredients");
-    }
-
-    function saveIngredient() {
-      const ingredient_id = document.getElementById("edit-ingredient-id").value
-      const ingredient_name = document.getElementById("edit-ingredient-name").value ?? "Unknown Ingredient";
-      const ingredient_unit = document.getElementById("edit-ingredient-unit").value ?? "U";
-      const ingredient_amount = Number(document.getElementById("edit-ingredient-amount").value ?? "0");
-      
-        // date input gives "" when empty, so normalize first
-      const restockInput = document.getElementById("edit-ingredient-restock").value;
-      const ingredient_restock = restockInput
-        ? new Date(restockInput).toISOString()
-        : new Date().toISOString();      // format ingredient into json
-      const ingredient = {
-        name: ingredient_name,
-        unit: ingredient_unit,
-        amount: ingredient_amount,
-        lastRestock: ingredient_restock
+      DB.data.ingredients[newId] = {
+        name: name ?? existing.name ?? "",
+        unit: unit ?? existing.unit ?? "",
+        amount: amount ?? existing.amount ?? 0,
+        lastRestock: lastRestock
+          ? new Date(lastRestock).toISOString()
+          : existing.lastRestock ?? new Date().toISOString()
       };
 
-      // obtain id
-      const id = ingredient_id ?? `${ingredient_name.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;         
-        
-      DB.data.ingredients[id] = ingredient;
       DB.save();
 
-      updateInventory();
-      updateStock();
-      deselectStock();
-      hideOverlay();
+      return newId;
     }
 
     function deleteIngredient(id){
@@ -655,6 +671,8 @@
     }
 
     function generateIngredientRow(id){
+
+      const ingredientTable = document.getElementById("ingredients_table_content")
       
       const ingredient = {
         name: "",
@@ -694,14 +712,19 @@
       inputRestock.value = new Date(ingredient.lastRestock).toISOString().split("T")[0];
       
       const saveButton = row.querySelector(".save-button");
+
+      // unhide save button if any of the input fields change
       row.querySelectorAll(".edit-ingredient").forEach((e) => {
         e.addEventListener("change", () => {
           saveButton.classList.remove("hidden");
         })
       })
 
+      // if id is not given, it's called from clicking the "Add Ingredient" row
+      // so show the save button
       if (!id) saveButton.classList.remove("hidden");
 
+      // save button event listener
       saveButton.addEventListener("click", (e, tgt) => {
         const newName = inputName.value ?? "";
         const newUnit = inputUnit.value ?? "";
@@ -717,13 +740,7 @@
           ? new Date(restockInput).toISOString()
           : new Date().toISOString();      // format ingredient into json
         
-        DB.data.ingredients[id] = {
-          name: newName,
-          unit: newUnit,
-          amount: newAmount,
-          lastRestock: newRestock
-        };
-        DB.save();
+        saveIngredient(id, newName, newUnit, newAmount, newRestock);
 
         e.target.classList.add("hidden"); // hide save button again
       });
@@ -733,23 +750,18 @@
         row.remove();
       });
 
-      return row;
+      ingredientTable.appendChild(row);
     }
 
     function updateInventory() {
 
-      console.log("Updating Inventory...");
-
       const ingredientsContent = document.getElementById("ingredients_table_content");
-
       if (!ingredientsContent) return;
-
-      // Clear old rows
+      
+      // Reset table
       ingredientsContent.innerHTML = "";
-
-      // Add rows
       for (const [id, ingredient] of Object.entries(DB.data.ingredients)) {
-        ingredientsContent.appendChild(generateIngredientRow(id));
+        generateIngredientRow(id);
       }
     }
 
@@ -793,42 +805,15 @@
 
 
     // STOCK HANDLERS
-    /*
-    document.getElementById("edit-stock-add-ingredient").addEventListener("click", () => {
-      const editStockIngredientTableBody = document.getElementById("edit-stock-ingredients-tbody");
-      const editStockId = document.getElementById("edit-stock-id").value ?? "";
-      const editStockName = document.getElementById("edit-stock-name").value ?? "";
-      const editStockPrice = Number(document.getElementById("edit-stock-price").value ?? "0");
-      editStockIngredientTableBody.appendChild(generateStockIngredientRow(editStockId, editStockName, editStockPrice));
-    })
-    document.getElementById("stock-add").addEventListener("click", () => {
-      name = document.getElementById("edit-stock-name").value ?? "Item";
-      price = Number(document.getElementById("edit-stock-price").value ?? "0");
-      id = `${name}_${Date.now()}`;
-      updateStockItem(id, name, price, {});
-    });
-    document.getElementById("stock-save").addEventListener("click", () => {
-      name = document.getElementById("edit-stock-name").value ?? "Item";
-      price = Number(document.getElementById("edit-stock-price").value ?? "0");
-      id = document.getElementById("edit-stock-id").value ?? `${name}_${Date.now()}`;
-      ingredients = JSON.parse(document.getElementById("edit-stock-ingredients").value ?? "{}");
-      updateStockItem(id, name, price, ingredients);
-    });
-    */
-    document.getElementById("add-stock-item-ingredient").addEventListener("click", () => {
-    });
+    
     // INVENTORY HANDLERS
 
     // export inventory
     document.getElementById("export-inventory").addEventListener("click", () => DB.export('inventory', true));
-
-    // add inventory item
-    document.getElementById("ingredients_additem").addEventListener("click", () => {
-      document.getElementById("ingredients_table_content").appendChild(generateIngredientRow());
-    });
     
     // init
     DB.load();
+    resetStockItemUI();
     updateInventory();
     updateStock();
     showContent("stock-item");

@@ -1,0 +1,12 @@
+{
+  "ingredients": {
+    "undefined": {
+      "name": "Condensed Milk",
+      "unit": "mL",
+      "amount": 500,
+      "lastRestock": "2026-06-25T00:00:00.000Z"
+    }
+  },
+  "menu": {},
+  "transactions": []
+}
