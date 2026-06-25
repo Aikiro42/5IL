@@ -367,60 +367,6 @@
 
     }
 
-    class Popup {
-      constructor(popupContainer){
-        this.popupContainer =
-          typeof popupContainer === "string"
-          ? document.querySelector(popupContainer)
-          : popupContainer;
-        if (!this.popupContainer) {
-          throw new Error("Popup container not found");
-        }
-        
-        // store delegated handlers so they persist
-        this._delegatedHandlers = [];
-
-      }
-      
-      addHandler(selector, event, handler=(e, target)=>{}){
-          const listener = (e) => {
-            const target = e.target.closest(selector);
-
-            if (target && this.popupContainer.contains(target)) {
-              // specifies that `this` is the target within the context
-              // of the handler function
-              handler.call(target, e, target);
-            }
-          };
-          
-          this.popupContainer.addEventListener(event, listener);
-
-          // keep reference in case you want to remove later
-          this._delegatedHandlers.push({ event, listener });
-
-      }
-
-      show(templateDOMNode){
-        this.popupContainer.innerHTML = "";
-        this.popupContainer.appendChild(templateDOMNode);
-        this.popupContainer.classList.remove("hidden");
-      }
-
-      hide() {
-        this.popupContainer.innerHTML = "";
-        this.popupContainer.classList.add("hidden");
-      }
-
-      // optional: cleanup method
-      destroy() {
-        this._delegatedHandlers.forEach(({ event, listener }) => {
-          this.popupContainer.removeEventListener(event, listener);
-        });
-        this._delegatedHandlers = [];
-        this.hide();
-      }
-    }
-
     const DB = new AppData()
 
     // CONSTANTS
