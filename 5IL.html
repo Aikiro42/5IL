@@ -35,8 +35,7 @@
     .small-button{ cursor: pointer; padding: 5px; border-radius: 2px; }
     .small-button:hover { background: #d5d5d5; }
     .small-button:active { transform: scale(0.98); }
-    .blended-input{ font: inherit; background: transparent; border: none; }
-
+    .blended-input{ font: inherit; background: transparent; border: none; outline: none; width: 100%;}
     body { display: flex; height: 100vh; overflow: hidden; }
     
     /* SECTION: Sidebar */
@@ -142,12 +141,15 @@
     #ingredients_table td{ padding: 0; }
     #ingredients_table td:nth-child(1){ width: 60%; }
     #ingredients_table td:nth-child(5){ width: 10%; }
-    #ingredients_table #ingredients_additem { padding: 12px 16px;}
-    #ingredients_table .edit-ingredient { transition-duration: 0.3s; padding: 12px 16px; width: 100%; border: none; outline: none; font: inherit; color: inherit; background: transparent; }
-    #ingredients_table .edit-ingredient:focus { background: #bcd3ff;}
+    #ingredients_table #ingredients_additem { padding: 12px 16px; }
+    #ingredients_table .blended-input { padding: 12px 16px; transition-duration: 0.3s;}
+    #ingredients_table .blended-input:focus { background: #bcd3ff;}
     
     /* SECTION: Stock */
-    #stock-content-wrapper { display: flex; gap: 3%; }
+    #stock_table_content td{ padding: 0; }
+    #stock_table_content td.stock-item-amount{ padding: 12px 16px; }
+    #stock_table_content .blended-input { padding: 12px 16px; transition-duration: 0.3s;}
+    #stock_table_content .blended-input:focus { background: #bcd3ff; }
     #content-stock-item h1,h2 {margin-bottom: 1%;}
     #content-stock-item h1 {line-height: 50px;}
     #content-stock-item h1 * {vertical-align: middle;}
@@ -160,10 +162,14 @@
     #stock-item-back:active{ transform: scale(0.95); }
     #stock-item-ingredients-table-body td{ padding: 0; }
     #stock-item-ingredients-table-body .blended-input{ padding: 12px 16px; }
-
+    #stock-item-ingredients-table-body .blended-input.edit-stock-item-ingredient-amount { width: 30%; }
+    #stock-item-ingredients-table-body .blended-input:focus { background: #bcd3ff; }
+    
     /* DYNAMIC CSS */
     .hidden { display: none !important;  }
-    
+    .generic-table .editing * {background: #ffff8e; color: black;}
+    .generic-table .editing:hover * {background: #ffffbe; color: black;}
+
   </style>
 </head>
 <body>
@@ -537,7 +543,7 @@
       const ingredientUnit = ingredientId ? DB.data.ingredients[ingredientId].unit : "";
       ingredientRow.innerHTML = `
         <td></td>
-        <td><input type="number" class="edit-stock-item-ingredient-input blended-input edit-stock-item-ingredient-amount" value="${ingredientAmount}"/> ${ingredientUnit}</td>
+        <td><input type="number" class="blended-input edit-stock-item-ingredient-amount" value="${ingredientAmount}"/> ${ingredientUnit}</td>
         <td>
           <span class="small-button save-button">💾</span>
           <span class="small-button delete-button">🗑️</span>
@@ -546,7 +552,7 @@
       // add ingredient selector
       ingredientRow.querySelector("td:nth-child(1)").appendChild(
         generateIngredientDropdown(
-          ["edit-stock-item-ingredient-input", "edit-stock-item-ingredient-id", "blended-input"],
+          ["edit-stock-item-ingredient-id", "blended-input"],
           ingredientId,
           State.draft.ingredients
         )
@@ -556,17 +562,24 @@
       const ingredientIdInput = ingredientRow.querySelector(".edit-stock-item-ingredient-id");
       const ingredientAmountInput = ingredientRow.querySelector(".edit-stock-item-ingredient-amount");
       const saveButton = ingredientRow.querySelector(".save-button");
+      const deleteButton = ingredientRow.querySelector(".delete-button");
       
       // hide save button
-      if (ingredientId) saveButton.classList.add("hidden");
+      if (ingredientId) {
+        saveButton.classList.add("hidden");
+      }else{
+        ingredientRow.classList.add("editing");
+      }
       
       // show save button on field change
-      for (const inputField of ingredientRow.querySelectorAll(".edit-stock-item-ingredient-input")){
-        inputField.addEventListener("change", () => {
-          delete State.draft.ingredients[ingredientId];
+      ingredientIdInput.addEventListener("change", () => {
+        saveButton.classList.remove("hidden");
+        ingredientRow.classList.add("editing");
+      })
+      ingredientAmountInput.addEventListener("change", () => {
           saveButton.classList.remove("hidden");
-        })
-      }
+          ingredientRow.classList.add("editing");
+      })
 
       // on save, add ingredient to list or edit ingredient
       saveButton.addEventListener("click", () => {
@@ -578,8 +591,16 @@
         }
         delete State.draft.ingredients[ingredientId];
         State.draft.ingredients[newId] = amount;
+        saveButton.classList.add("hidden");
+        ingredientRow.classList.remove("highlighted");
         updateStockItemUI(State.id);
       });
+
+      deleteButton.addEventListener("click", () => {
+        delete State.draft.ingredients[ingredientId];
+        ingredientRow.remove();
+      });
+
       stockItemIngredientsTable.appendChild(ingredientRow);
     }
 
@@ -630,14 +651,26 @@
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td>${stockitem.name}</td>
-          <td>${stockitem.price}</td>
-          <td>${calculateAvailableStock(stockitem.ingredients)}</td>
+          <td><input type="text" class="edit-stock-item-name blended-input" /></td>
+          <td><input type="number" class="edit-stock-item-price blended-input" /></td>
+          <td class="stock-item-amount">${calculateAvailableStock(stockitem.ingredients)}</td>
           <td>
             <span class="small-button edit-button">✏️</span>
+            <span class="small-button save-button hidden">💾</span>
             <span class="small-button delete-button">🗑️</span>
           </td>
         `;
+        const editName = row.querySelector(".edit-stock-item-name");
+        const editPrice = row.querySelector(".edit-stock-item-price");
+        const saveButton = row.querySelector(".save-button")
+        editName.value = stockitem.name
+        editPrice.value = stockitem.price
+        editName.addEventListener("change", () => {
+            saveButton.classList.remove("hidden");
+        });
+        editPrice.addEventListener("change", () => {
+            saveButton.classList.remove("hidden");
+        });
         
         row.querySelector(".edit-button").addEventListener("click", () => {
           resetStockItemUI();
@@ -649,6 +682,13 @@
         row.querySelector(".delete-button").addEventListener("click", () => {
           deleteStockItem(id);
           updateStock();
+        })
+
+        saveButton.addEventListener("click", () => {
+          DB.data.menu[id].name = editName.value;
+          DB.data.menu[id].price = Number(editPrice.value || "0");
+          DB.save();
+          saveButton.classList.add("hidden");
         })
 
         stockContent.appendChild(row);
@@ -703,10 +743,10 @@
       const row = document.createElement("tr");
 
       row.innerHTML = `
-        <td><input type="text" class="edit-ingredient ingredient-name" /></td>
-        <td><input type="text" class="edit-ingredient ingredient-unit" /></td>
-        <td><input type="text" class="edit-ingredient ingredient-amount" /></td>
-        <td><input type="date" class="edit-ingredient ingredient-restock"></td>
+        <td><input type="text" class="blended-input ingredient-name" /></td>
+        <td><input type="text" class="blended-input ingredient-unit" /></td>
+        <td><input type="text" class="blended-input ingredient-amount" /></td>
+        <td><input type="date" class="blended-input ingredient-restock"></td>
         <td>
           <span class="small-button save-button hidden">💾</span>
           <span class="small-button delete-button">🗑️</span>
